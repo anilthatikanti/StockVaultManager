@@ -6,6 +6,22 @@ export const routes: Routes = [
   {
     path: 'auth',
     component: AuthenticationComponent,
+    children: [
+      {
+        path: '',
+        loadChildren: () =>
+          import('../component/authentication/auth.routes').then(
+            (m) => m.routes
+          ),
+      },
+    ],
   },
-  { path: '', redirectTo: 'auth', pathMatch: 'full' },
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('../component/dashboard/dashboard.component').then(
+        (m) => m.DashboardComponent
+      ),
+  },
+  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 ];
