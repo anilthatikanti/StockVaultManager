@@ -23,6 +23,9 @@ h3,
 h4,
 h5,
 p {
-  margin: 0px;
-  padding: 0px;
+  margin: 2px;
+  padding: 2px;
+}
+.p-button-label {
+  font-weight: 600;
 }

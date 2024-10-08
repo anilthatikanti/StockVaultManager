@@ -1,10 +1,95 @@
-<div class="h-full flex flex-column">
+<div class="h-full flex flex-column gap-3">
   <h3 class="text-primary m-0 font-medium">Welcome to Finance Books!</h3>
-  <p-card class="w-full flex-grow-1" [style]="{ height: '33%' }">
-    <ng-template pTemplate="header">
-      <div class="bg-blue-400">
-        <h1>Nifty 50 line chart</h1>
-      </div>
-    </ng-template>
-  </p-card>
+  <div [style]="{ height: '50%' }">
+    <p-card
+      class="w-full flex-grow-1"
+      [style]="{
+        height: '100%',
+        overflow: 'hidden',
+        border: ' solid 1px #e6e9ed',
+        'box-shadow': 'unset'
+      }"
+    >
+      <ng-template pTemplate="header">
+        <div class="h-full">
+          <div class="p-3" [style]="{ 'background-color': '#f2f4f7' }">
+            <h5 class="text-lg font-medium">Nifty 50 line chart</h5>
+          </div>
+          <div class="p-3 flex justify-content-between">
+            <div class="flex flex-column justify-content-center">
+              <h2 class="font-medium">24,823.15</h2>
+              <p class="text-green-500">+11.65(0.047%)</p>
+            </div>
+            <div class="flex gap-4">
+              <div>
+                <p class="font-sm" [style]="{ color: '#a4acba' }">Open</p>
+                <p class="font-semibold">24,845.40</p>
+              </div>
+              <div>
+                <p class="font-sm" [style]="{ color: '#a4acba' }">Prev close</p>
+                <p class="font-semibold">24,845.40</p>
+              </div>
+              <div>
+                <p class="font-sm" [style]="{ color: '#a4acba' }">Low</p>
+                <p class="font-semibold">24,845.40</p>
+              </div>
+              <div>
+                <p class="font-sm" [style]="{ color: '#a4acba' }">High</p>
+                <p class="font-semibold">24,845.40</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+      <div id="chart-container"></div>
+    </p-card>
+  </div>
+
+  <div class="flex flex-grow-1 gap-3 w-full">
+    <p-card
+      [style]="{
+        height: '100%',
+        overflow: 'hidden',
+        border: ' solid 1px #e6e9ed',
+        'box-shadow': 'unset'
+      }"
+      class="w-full flex-grow-1"
+    >
+      <ng-template pTemplate="header">
+        <div class="h-full">
+          <div class="p-3 flex justify-content-between align-items-center">
+            <h5 class="text-base font-medium">Nifty 50 stocks</h5>
+            <p-button
+              label="View all"
+              [style]="{ 'font-weight': 500, 'font-size': '16px' }"
+              [text]="true"
+            />
+          </div>
+        </div>
+      </ng-template>
+    </p-card>
+
+    <p-card
+      [style]="{
+        height: '100%',
+        overflow: 'hidden',
+        border: ' solid 1px #e6e9ed',
+        'box-shadow': 'unset'
+      }"
+      class="w-full flex-grow-1"
+    >
+      <ng-template pTemplate="header">
+        <div class="h-full">
+          <div class="p-3 flex justify-content-between align-items-center">
+            <h5 class="text-base font-medium">My watchlist</h5>
+            <p-button
+              label="20 Items"
+              [style]="{ 'font-weight': 500, 'font-size': '16px' }"
+              [text]="true"
+            />
+          </div>
+        </div>
+      </ng-template>
+    </p-card>
+  </div>
 </div>
