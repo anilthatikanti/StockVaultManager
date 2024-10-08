@@ -1,8 +1,20 @@
 import { Routes } from '@angular/router';
 import { AuthenticationComponent } from '../component/authentication/authentication.component';
 import { LoginComponent } from '../component/login/login.component';
+import { LayoutComponent } from '../component/layout/layout.component';
 
 export const routes: Routes = [
+  {
+    path: '',
+    component: LayoutComponent,
+    children: [
+      {
+        path: '',
+        loadChildren: () =>
+          import('../component/layout/layout.routes').then((m) => m.routes),
+      },
+    ],
+  },
   {
     path: 'auth',
     component: AuthenticationComponent,
@@ -15,13 +27,6 @@ export const routes: Routes = [
           ),
       },
     ],
-  },
-  {
-    path: 'dashboard',
-    loadComponent: () =>
-      import('../component/dashboard/dashboard.component').then(
-        (m) => m.DashboardComponent
-      ),
   },
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 ];

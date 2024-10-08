@@ -1,12 +1,10 @@
-<div class="h-screen flex flex-column">
-  <div
-    class="h-3rem px-3 nav-shadow flex justify-content-between align-items-center"
-  >
-    <i class="fa-solid fa-arrow-trend-up"></i>
-    <p-avatar label="P" shape="circle" />
-  </div>
-  <div class="flex-grow-1 flex">
-    <div class="w-18rem sidebar-shadow h-full"></div>
-    <div class="w-full h-full"></div>
-  </div>
+<div class="h-full flex flex-column">
+  <h3 class="text-primary m-0 font-medium">Welcome to Finance Books!</h3>
+  <p-card class="w-full flex-grow-1" [style]="{ height: '33%' }">
+    <ng-template pTemplate="header">
+      <div class="bg-blue-400">
+        <h1>Nifty 50 line chart</h1>
+      </div>
+    </ng-template>
+  </p-card>
 </div>

@@ -1,0 +1,91 @@
+<div class="h-screen flex flex-column">
+  <div
+    class="h-3rem w-full bg-white px-3 nav-shadow flex justify-content-between align-items-center"
+  >
+    <i class="fa-solid fa-arrow-trend-up"></i>
+    <div class="flex align-items-center gap-3">
+      <!-- notification -->
+      <i class="pi pi-bell"></i>
+      <!-- user avatar -->
+      <p-button
+        (onClick)="op.toggle($event)"
+        [link]="true"
+        [style]="{ padding: '0px' }"
+        [rounded]="true"
+      >
+        <p-avatar label="AT" shape="circle" />
+      </p-button>
+    </div>
+  </div>
+
+  <div class="flex-grow-1 p-3">
+    <div class="flex h-full gap-3">
+      <div
+        class="w-18rem sidebar-shadow flex justify-content-center h-full py-3 border-round-2xl"
+      >
+        <p-menu [model]="items">
+          <ng-template pTemplate="item" let-item>
+            <a
+              pRipple
+              class="flex align-items-center p-menuitem-link mb-2"
+              routerLinkActive="active-route"
+              [routerLink]="item.routerLink"
+            >
+              <span [class]="item.icon"></span>
+              <span class="ml-2">{{ item.label }}</span>
+            </a>
+          </ng-template>
+          <ng-template pTemplate="end">
+            <button
+              pRipple
+              class="relative overflow-hidden w-full p-link flex align-items-center p-2 pl-3 text-color hover:surface-200 border-noround"
+            >
+              <p-avatar
+                image="https://primefaces.org/cdn/primeng/images/demo/avatar/amyelsner.png"
+                class="mr-2"
+                shape="circle"
+              />
+              <span class="inline-flex flex-column">
+                <span class="font-bold">Amy Elsner</span>
+                <span class="text-sm">Admin</span>
+              </span>
+            </button>
+          </ng-template>
+        </p-menu>
+      </div>
+
+      <div class="w-full h-full">
+        <router-outlet></router-outlet>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User overlay panel -->
+<p-overlayPanel #op>
+  <div class="flex align-items-center">
+    <p-avatar icon="pi pi-user" styleClass="mr-2" shape="circle" />
+    <div>
+      <p>Anil Thatikanti</p>
+      <p class="text-xs">{{ "anil.thatikanti@tandemloop.in" }}</p>
+    </div>
+  </div>
+  <p-divider />
+  <p-button
+    label="Change Password"
+    [style]="{ 'font-weight': 400 }"
+    [text]="true"
+    [size]="'small'"
+    [outlined]="false"
+  />
+  <p-toast />
+  <p-confirmPopup />
+  <p-button
+    (click)="confirm2($event)"
+    label="Logout"
+    severity="danger"
+    [outlined]="false"
+    [size]="'small'"
+    [text]="true"
+  />
+</p-overlayPanel>
