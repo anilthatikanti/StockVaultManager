@@ -2,7 +2,7 @@
   <h3 class="text-primary m-0 font-medium">Welcome to Finance Books!</h3>
   <div [style]="{ height: '50%' }">
     <p-card
-      class="w-full flex-grow-1"
+      class="w-full flex-shrink-0"
       [style]="{
         height: '100%',
         overflow: 'hidden',
@@ -45,7 +45,7 @@
     </p-card>
   </div>
 
-  <div class="flex flex-grow-1 gap-3 w-full">
+  <div class="flex gap-3 w-full" [style]="{ height: '45vh' }">
     <p-card
       [style]="{
         height: '100%',
@@ -53,20 +53,34 @@
         border: ' solid 1px #e6e9ed',
         'box-shadow': 'unset'
       }"
-      class="w-full flex-grow-1"
+      class="w-full"
     >
       <ng-template pTemplate="header">
         <div class="h-full">
           <div class="p-3 flex justify-content-between align-items-center">
-            <h5 class="text-base font-medium">Nifty 50 stocks</h5>
+            <h5 class="text-base font-medium">Nifty 200 stocks</h5>
             <p-button
               label="View all"
+              size="small"
               [style]="{ 'font-weight': 500, 'font-size': '16px' }"
               [text]="true"
+              [link]="true"
             />
           </div>
         </div>
       </ng-template>
+      <div
+        class="px-3 overflow-auto"
+        [style]="{ height: innerHeight - 640 + 'px' }"
+      >
+        @for (item of nifty200; track item) {
+        <div class="flex justify-content-between">
+          <h5>{{ item }}</h5>
+        </div>
+        } @empty {
+        <li>There are no items.</li>
+        }
+      </div>
     </p-card>
 
     <p-card
@@ -80,15 +94,34 @@
     >
       <ng-template pTemplate="header">
         <div class="h-full">
-          <div class="p-3 flex justify-content-between align-items-center">
+          <div
+            class="px-3 py-2 flex justify-content-between align-items-center"
+          >
             <h5 class="text-base font-medium">My watchlist</h5>
             <p-button
               label="20 Items"
+              size="small"
               [style]="{ 'font-weight': 500, 'font-size': '16px' }"
               [text]="true"
             />
           </div>
         </div>
+      </ng-template>
+      <ng-template pTemplate="subHeader" [style]="{ padding: '0px' }">
+        <p-tabView [style]="{ padding: '0px', 'font-size': '12px' }">
+          <p-tabPanel header="Header I">
+            <p>Lorem ipsum dolor sit amet...</p>
+          </p-tabPanel>
+          <p-tabPanel header="Header II">
+            <p>
+              Sed ut perspiciatis unde omnis iste natus error sit voluptatem
+              accusantium...
+            </p>
+          </p-tabPanel>
+          <p-tabPanel header="Header III">
+            <p>At vero eos et accusamus et iusto odio dignissimos...</p>
+          </p-tabPanel>
+        </p-tabView>
       </ng-template>
     </p-card>
   </div>

@@ -29,3 +29,9 @@ p {
 .p-button-label {
   font-weight: 600;
 }
+.p-card .p-card-content {
+  padding: 0px;
+}
+.p-card .p-card-body {
+  padding: 0px;
+}
