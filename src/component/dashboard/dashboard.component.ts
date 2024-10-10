@@ -7,6 +7,7 @@ import {
   StockService,
   watchListData,
 } from '../../shared/services/stock.service';
+import { FormsModule } from '@angular/forms';
 import { LiveData, Stock } from '../../shared/interface/stock.interface';
 import { GetStockNamePipe } from '../../shared/pips/get-stock-name.pipe';
 import { CommonModule, DecimalPipe } from '@angular/common';
@@ -24,6 +25,8 @@ import { DividerModule } from 'primeng/divider';
     CommonModule,
     OverlayPanelModule,
     DividerModule,
+    TabViewModule,
+    FormsModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
@@ -35,6 +38,8 @@ export class DashboardComponent implements OnInit {
   innerWidth: number = window.innerWidth;
   watchListData = watchListData;
   showAddButtonId!: number;
+  activeTabViewIndex: number = 0;
+  editWatchListId!: number | undefined;
 
   watchList: any[] = [];
   items: MenuItem[] = [
@@ -70,8 +75,6 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  getClosePrice(token: number) {}
-
   getLiveItem(token: number, type?: string): number {
     switch (type) {
       case 'close':
@@ -103,50 +106,18 @@ export class DashboardComponent implements OnInit {
         );
     }
   }
-  updateWatchList(data: Stock, _id: number) {
-    this.watchListData.forEach((item) => {
-      if (item._id === _id) {
-        item.stocks.push(data);
-      }
-      return item;
-    });
+
+  deleteWatchListItem(index: number) {
+    this.watchListData[this.activeTabViewIndex].stocks = this.watchListData[
+      this.activeTabViewIndex
+    ].stocks.filter((item: Stock, i: number) => i !== index);
+  }
+
+  updateWatchListName(event: any) {
+    if (event.target.value) {
+      this.watchListData[this.activeTabViewIndex].watchListName =
+        event.target.value;
+    }
+    this.editWatchListId = undefined;
   }
 }
-
-const data = [
-  {
-    watchlistName: 'watch1',
-    stocks: [
-      {
-        name: 'Acc',
-        instrumentToken: '3329',
-      },
-      {
-        name: 'Acc',
-        instrumentToken: '3329',
-      },
-      {
-        name: 'Acc',
-        instrumentToken: '3329',
-      },
-    ],
-  },
-  {
-    watchlistName: 'watch1',
-    stocks: [
-      {
-        name: 'Acc',
-        instrumentToken: '3329',
-      },
-    ],
-  },
-  {
-    watchlistName: 'watch1',
-    stocks: [
-      {
-        name: 'Acc',
-        instrumentToken: '3329',
-      },
-    ],
-  },
-];

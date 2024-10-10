@@ -75,15 +75,21 @@
         class="px-3 pt-3 overflow-auto"
         [style]="{ height: innerHeight - 636 + 'px', }"
       >
-        @for (item of nifty200; track item.instrument_token) {
+        @for (item of nifty200; track $index) { @if($index){
+        <p-divider />
+        }
         <div class="flex justify-content-between align-items-center">
-          <div class="flex align-items-center">
+          <div class="flex align-items-center gap-2">
             <p-button
               icon="pi pi-plus"
-              [style]="{ width: '20px', height: '8px' }"
-              [rounded]="true"
+              size="small"
+              [style]="{
+                padding: '0px',
+                width: '16px',
+                'border-radius': '0px'
+              }"
               [outlined]="true"
-              (onClick)="op.toggle($event)"
+              (click)="watchListData[activeTabViewIndex].stocks.push(item)"
             />
 
             <p class="text-sm font-normal">{{ item.trading_symbol }}</p>
@@ -120,22 +126,26 @@
           </div>
         </div>
 
-        <p-overlayPanel
+        <!-- <p-overlayPanel
           #op
-          [style]="{ width: '450px' }"
+          [style]="{ padding: '0px' }"
           [showCloseIcon]="false"
         >
-          <ng-template pTemplate="content">
-            @for (watchList of watchListData; track watchList._id) {
-            <p-button
-              [text]="true"
-              (onClick)="updateWatchList(item, watchList._id)"
-              >{{ watchList.watchListName }}</p-button
-            >
-            }
+          <ng-template pTemplate="content" ()>
+            <div class="flex flex-column">
+              <p class="text-sm">Select watchList</p>
+              <p-divider />
+              @for (watchList of watchListData; track watchList._id) {
+              <p
+                class="text-sm cursor-pointer my-1"
+                (click)="updateWatchList(op, $event, item, watchList._id)"
+              >
+                {{ watchList.watchListName }}
+              </p>
+              }
+            </div>
           </ng-template>
-        </p-overlayPanel>
-        <p-divider [style]="{ padding: '0px', margin: '2px' }" />
+        </p-overlayPanel> -->
         } @empty {
         <li>There are no items.</li>
         }
@@ -167,11 +177,75 @@
         </div>
       </ng-template>
       <ng-template pTemplate="subHeader" [style]="{ padding: '0px' }">
-        <p-tabView [style]="{ padding: '0px', 'font-size': '12px' }">
+        <p-tabView
+          [style]="{ padding: '0px', 'font-size': '12px' }"
+          (activeIndexChange)="this.activeTabViewIndex = $event"
+          [activeIndex]="activeTabViewIndex"
+        >
           @for( watchList of watchListData;track watchList.watchListName){
-          <p-tabPanel [header]="watchList.watchListName">
-            @for(stock of watchList.stocks;track stock.instrument_token){
-            <p>{{ stock.name }}</p>
+          <p-tabPanel>
+            <ng-template pTemplate="header">
+              @if(editWatchListId===watchList._id){
+              <input
+                type="text"
+                pInputText
+                [value]="
+                  this.watchListData[this.activeTabViewIndex].watchListName
+                "
+                (keyup.enter)="updateWatchListName($event)"
+                (blur)="updateWatchListName($event)"
+              />
+              }@else {
+              <div (dblclick)="editWatchListId = watchList._id">
+                {{ watchList.watchListName }}
+              </div>
+              }
+            </ng-template>
+            @for(stock of watchList.stocks;track $index){ @if($index){
+            <p-divider />
+            }
+            <div class="flex justify-content-between">
+              <div class="flex align-items-center gap-2">
+                <i
+                  class="pi pi-trash cursor-pointer"
+                  [style]="{ 'font-size': '14px', color: 'tomato' }"
+                  (click)="deleteWatchListItem($index)"
+                ></i>
+                <div>
+                  {{ stock.name }}
+                </div>
+              </div>
+              <div class="flex flex-column align-items-end">
+                <p>
+                  {{
+                    getLiveItem(stock.instrument_token, "current")
+                      ? getLiveItem(stock.instrument_token, "current")
+                      : "-"
+                  }}
+                </p>
+                <div
+                  class="flex text-xs"
+                  [ngStyle]="
+                    getLiveItem(stock.instrument_token, 'change') < 0
+                      ? { color: 'red' }
+                      : { color: 'green' }
+                  "
+                >
+                  <span class="mr-2">{{
+                    (
+                      getLiveItem(stock.instrument_token, "current") -
+                      getLiveItem(stock.instrument_token, "close")
+                    ).toFixed(2)
+                  }}</span>
+
+                  (<span
+                    >{{
+                      getLiveItem(stock.instrument_token, "change").toFixed(2)
+                    }}%</span
+                  >)
+                </div>
+              </div>
+            </div>
             }
           </p-tabPanel>
           }
