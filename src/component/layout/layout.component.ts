@@ -8,6 +8,7 @@ import { RouterOutlet } from '@angular/router';
 import { DividerModule } from 'primeng/divider';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { ToastModule } from 'primeng/toast';
+import { StockService } from '../../shared/services/stock.service';
 @Component({
   selector: 'app-layout',
   standalone: true,
@@ -56,8 +57,10 @@ export class LayoutComponent {
 
   constructor(
     private confirmationService: ConfirmationService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private stockService: StockService
   ) {}
+
   confirm2(event: Event) {
     this.confirmationService.confirm({
       target: event.target as EventTarget,

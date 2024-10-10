@@ -3,16 +3,17 @@ import { Injectable } from '@angular/core';
 import { ApiResponse } from '../interface/response.interface';
 import { LiveData, Stock } from '../interface/stock.interface';
 import { firstValueFrom, Subject } from 'rxjs';
+import { WatchList } from '../interface/watchList.interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StockService {
-  nifty200InstrumentalTockens: number[] = [];
-  liveData: Subject<LiveData[]> = new Subject<LiveData[]>();
+  nifty200Data: Stock[] = [];
+  liveData: Subject<LiveData> = new Subject<LiveData>();
   dataMap: Map<number, LiveData> = new Map<number, LiveData>();
   ws!: WebSocket;
-  nifty200Data: Map<number, Stock> = new Map<number, Stock>();
+  isTockensLoaded: boolean = false;
 
   constructor(private http: HttpClient) {}
 
@@ -25,28 +26,22 @@ export class StockService {
       );
 
       if (data.status) {
-        data.payload.map((item: Stock) => {
-          this.nifty200InstrumentalTockens.push(item.instrument_token);
-          let data = this.nifty200Data.get(item.instrument_token);
-          if (data) {
-            Object.assign(data, item);
-          } else {
-            this.nifty200Data.set(item.instrument_token, item);
-          }
-        });
+        this.nifty200Data = data.payload;
+        this.isTockensLoaded = true;
       }
     } catch (error) {
       console.error('Error loading Nifty 200 tokens', error);
     }
   }
 
-  connect() {
-    this.ws = new WebSocket('wss://data.investit.ai');
+  async connect(nifty200InstrumentalTockens: number[]) {
+    console.log('nifty200InstrumentalTockens', nifty200InstrumentalTockens);
+    this.ws = await new WebSocket('wss://data.investit.ai');
     this.ws.onopen = () => {
       console.log('WebSocket connection established');
       const message = {
         a: 'subscribe',
-        v: this.nifty200InstrumentalTockens,
+        v: nifty200InstrumentalTockens,
       };
       // Send the message to the WebSocket server
       this.ws.send(JSON.stringify(message));
@@ -61,18 +56,30 @@ export class StockService {
     };
 
     this.ws.onmessage = (event) => {
-      this.updateData(JSON.parse(event.data));
+      this.liveData.next(JSON.parse(event.data));
     };
   }
-
-  updateData(data: LiveData) {
-    //this is way better than findIndex
-    let test = this.dataMap.get(data.instrument_token);
-    if (test) {
-      Object.assign(test, data);
-    } else {
-      this.dataMap.set(data.instrument_token, data);
-    }
-    this.liveData.next(Array.from(this.dataMap.values()));
-  }
 }
+
+export const watchListData: WatchList[] = [
+  {
+    _id: 1,
+    watchListName: 'watch_list_1',
+    stocks: [],
+  },
+  {
+    _id: 2,
+    watchListName: 'watch_list_2',
+    stocks: [],
+  },
+  {
+    _id: 3,
+    watchListName: 'watch_list_3',
+    stocks: [],
+  },
+  {
+    _id: 4,
+    watchListName: 'watch_list_4',
+    stocks: [],
+  },
+];

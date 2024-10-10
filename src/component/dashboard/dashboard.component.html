@@ -57,7 +57,9 @@
     >
       <ng-template pTemplate="header">
         <div class="h-full">
-          <div class="p-3 flex justify-content-between align-items-center">
+          <div
+            class="px-3 pt-3 flex justify-content-between align-items-center"
+          >
             <h5 class="text-base font-medium">Nifty 200 stocks</h5>
             <p-button
               label="View all"
@@ -70,13 +72,70 @@
         </div>
       </ng-template>
       <div
-        class="px-3 overflow-auto"
-        [style]="{ height: innerHeight - 640 + 'px' }"
+        class="px-3 pt-3 overflow-auto"
+        [style]="{ height: innerHeight - 636 + 'px', }"
       >
-        @for (item of nifty200; track item) {
-        <div class="flex justify-content-between">
-          <h5>{{ item }}</h5>
+        @for (item of nifty200; track item.instrument_token) {
+        <div class="flex justify-content-between align-items-center">
+          <div class="flex align-items-center">
+            <p-button
+              icon="pi pi-plus"
+              [style]="{ width: '20px', height: '8px' }"
+              [rounded]="true"
+              [outlined]="true"
+              (onClick)="op.toggle($event)"
+            />
+
+            <p class="text-sm font-normal">{{ item.trading_symbol }}</p>
+          </div>
+          <div class="flex flex-column align-items-end">
+            <p>
+              {{
+                getLiveItem(item.instrument_token, "current")
+                  ? getLiveItem(item.instrument_token, "current")
+                  : "-"
+              }}
+            </p>
+            <div
+              class="flex text-xs"
+              [ngStyle]="
+                getLiveItem(item.instrument_token, 'change') < 0
+                  ? { color: 'red' }
+                  : { color: 'green' }
+              "
+            >
+              <span class="mr-2">{{
+                (
+                  getLiveItem(item.instrument_token, "current") -
+                  getLiveItem(item.instrument_token, "close")
+                ).toFixed(2)
+              }}</span>
+
+              (<span
+                >{{
+                  getLiveItem(item.instrument_token, "change").toFixed(2)
+                }}%</span
+              >)
+            </div>
+          </div>
         </div>
+
+        <p-overlayPanel
+          #op
+          [style]="{ width: '450px' }"
+          [showCloseIcon]="false"
+        >
+          <ng-template pTemplate="content">
+            @for (watchList of watchListData; track watchList._id) {
+            <p-button
+              [text]="true"
+              (onClick)="updateWatchList(item, watchList._id)"
+              >{{ watchList.watchListName }}</p-button
+            >
+            }
+          </ng-template>
+        </p-overlayPanel>
+        <p-divider [style]="{ padding: '0px', margin: '2px' }" />
         } @empty {
         <li>There are no items.</li>
         }
@@ -109,18 +168,13 @@
       </ng-template>
       <ng-template pTemplate="subHeader" [style]="{ padding: '0px' }">
         <p-tabView [style]="{ padding: '0px', 'font-size': '12px' }">
-          <p-tabPanel header="Header I">
-            <p>Lorem ipsum dolor sit amet...</p>
+          @for( watchList of watchListData;track watchList.watchListName){
+          <p-tabPanel [header]="watchList.watchListName">
+            @for(stock of watchList.stocks;track stock.instrument_token){
+            <p>{{ stock.name }}</p>
+            }
           </p-tabPanel>
-          <p-tabPanel header="Header II">
-            <p>
-              Sed ut perspiciatis unde omnis iste natus error sit voluptatem
-              accusantium...
-            </p>
-          </p-tabPanel>
-          <p-tabPanel header="Header III">
-            <p>At vero eos et accusamus et iusto odio dignissimos...</p>
-          </p-tabPanel>
+          }
         </p-tabView>
       </ng-template>
     </p-card>
