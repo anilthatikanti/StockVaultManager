@@ -48,3 +48,7 @@ p {
 .p-overlaypanel .p-overlaypanel-content {
   padding: 10px;
 }
+.p-inputtext {
+  padding: 4px;
+  font-size: 12px;
+}
