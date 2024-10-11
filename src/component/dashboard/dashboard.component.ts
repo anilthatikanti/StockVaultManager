@@ -1,7 +1,7 @@
 import { Component, HostListener, OnInit } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
-import { MenuItem } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
 import { TabViewModule } from 'primeng/tabview';
 import {
   StockService,
@@ -13,6 +13,8 @@ import { GetStockNamePipe } from '../../shared/pips/get-stock-name.pipe';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { DividerModule } from 'primeng/divider';
+import { WatchList } from '../../shared/interface/watchList.interface';
+import { ToastModule } from 'primeng/toast';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -27,6 +29,7 @@ import { DividerModule } from 'primeng/divider';
     DividerModule,
     TabViewModule,
     FormsModule,
+    ToastModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
@@ -36,7 +39,7 @@ export class DashboardComponent implements OnInit {
   liveData: LiveData[] = [];
   innerHeight: number = window.innerHeight;
   innerWidth: number = window.innerWidth;
-  watchListData = watchListData;
+  watchListData: WatchList[] = watchListData;
   showAddButtonId!: number;
   activeTabViewIndex: number = 0;
   editWatchListId!: number | undefined;
@@ -54,7 +57,10 @@ export class DashboardComponent implements OnInit {
     this.innerWidth = window.innerWidth;
   }
 
-  constructor(private stockService: StockService) {}
+  constructor(
+    private stockService: StockService,
+    private messageService: MessageService
+  ) {}
 
   async ngOnInit() {
     await this.stockService.loadNifty200Tokens();
@@ -107,10 +113,33 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  deleteWatchListItem(index: number) {
-    this.watchListData[this.activeTabViewIndex].stocks = this.watchListData[
-      this.activeTabViewIndex
-    ].stocks.filter((item: Stock, i: number) => i !== index);
+  deleteWatchListItem(watchListId: number, token: number) {
+    this.watchListData.forEach((watchList: WatchList) => {
+      if (watchList._id === watchListId) {
+        watchList.stocks = watchList.stocks.filter(
+          (stock: Stock) => stock.instrument_token !== token
+        );
+      }
+      return watchList;
+    });
+  }
+
+  updateWatchList(op: any, $event: any, stock: Stock, watchListId: number) {
+    this.watchListData.forEach((watchList: WatchList) => {
+      if (watchList._id === watchListId) {
+        let index = watchList.stocks.findIndex(
+          (item: Stock) => item.instrument_token === stock.instrument_token
+        );
+        if (index == -1) {
+          watchList.stocks.push(stock);
+          this.messageService.add({
+            severity: 'success',
+            summary: `${watchList.watchListName} updated`,
+            detail: `${stock.name} added into ${watchList.watchListName}`,
+          });
+        }
+      }
+    });
   }
 
   updateWatchListName(event: any) {
