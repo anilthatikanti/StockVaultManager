@@ -259,6 +259,7 @@
           <p-dialog
             header="Edit watchlist name"
             [modal]="true"
+            [closable]="false"
             [visible]="watchList._id === editWatchList?._id"
           >
             <div class="flex flex-column gap-2">
@@ -279,6 +280,12 @@
                 (onClick)="editWatchList = undefined"
               />
               <p-button
+                label="Delete"
+                size="small"
+                severity="danger"
+                (onClick)="deleteWatchList()"
+              />
+              <p-button
                 label="Save"
                 size="small"
                 [disabled]="!editWatchListName.value.length"
@@ -297,6 +304,7 @@
 <p-dialog
   header="Create watchList name"
   [modal]="true"
+  [closable]="false"
   [visible]="createWatchListDialogVisible"
 >
   <div class="flex flex-column gap-2">

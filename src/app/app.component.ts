@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { environment } from '../environments/environment';
 import { Auth, connectAuthEmulator } from '@angular/fire/auth';
@@ -15,8 +15,7 @@ import { Title } from '@angular/platform-browser';
   providers: [MessageService],
   template: `<p-toast /> <router-outlet></router-outlet>`,
 })
-export class AppComponent {
-  title = 'angularstock';
+export class AppComponent implements AfterViewInit {
   constructor(
     firebaseAuth: Auth,
     firebaseStorage: Storage,
@@ -24,15 +23,18 @@ export class AppComponent {
     messageService: MessageService,
     titleService: Title
   ) {
-    titleService.setTitle(`Curio Web | ${0.01}`);
+    titleService.setTitle(`Angular-stock | ${0.01}`);
     toast.messageService = messageService;
-    this.clearFirebaseWarningTag();
 
     if (environment.useEmulators) {
       connectAuthEmulator(firebaseAuth, 'http://127.0.0.1:9099');
       connectStorageEmulator(firebaseStorage, '127.0.0.1', 9199);
     }
   }
+  ngAfterViewInit(): void {
+    this.clearFirebaseWarningTag();
+  }
+
   clearFirebaseWarningTag() {
     const firebaseWarningTag = document.querySelector(
       '.firebase-emulator-warning'

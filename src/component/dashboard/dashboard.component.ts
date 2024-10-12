@@ -147,7 +147,7 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  updateWatchList(op: any, $event: any, stock: Stock, watchListId: number) {
+  updateWatchList(op: any, event: any, stock: Stock, watchListId: number) {
     this.watchListData.forEach((watchList: WatchList) => {
       if (watchList._id === watchListId) {
         let index = watchList.stocks.findIndex(
@@ -163,13 +163,14 @@ export class DashboardComponent implements OnInit {
         }
       }
     });
+    op.toggle(event);
   }
 
   searchStock(event: any) {
     this.searchSubject.next(event.target.value);
   }
   getWatchListStocksCount() {
-    return this.watchListData[this.activeTabViewIndex].stocks.length;
+    return this.watchListData[this.activeTabViewIndex]?.stocks?.length ?? 0;
   }
   updatedWatchListName(watchListNewName: string) {
     this.watchListData.forEach((watchList: WatchList) => {
@@ -186,27 +187,43 @@ export class DashboardComponent implements OnInit {
     });
   }
   createWatchList() {
-    let index = this.watchListData.findIndex(
-      (watchList) => watchList.watchListName === this.createWatchListName
-    );
-    if (index === -1) {
-      this.watchListData.push({
-        _id: Date.now(),
-        watchListName: this.createWatchListName,
-        stocks: [],
-      });
-      this.createWatchListDialogVisible = false;
-      this.createWatchListName = '';
+    if (this.watchListData.length < 5) {
+      let index = this.watchListData.findIndex(
+        (watchList) => watchList.watchListName === this.createWatchListName
+      );
+      if (index === -1) {
+        this.watchListData.push({
+          _id: Date.now(),
+          watchListName: this.createWatchListName,
+          stocks: [],
+        });
+        this.createWatchListDialogVisible = false;
+        this.createWatchListName = '';
+      } else {
+        this.messageService.add({
+          severity: 'warning',
+          summary: `Watchlist create error`,
+          detail: `${this.createWatchListName} is already exist.`,
+        });
+      }
     } else {
       this.messageService.add({
-        severity: 'warning',
-        summary: `Watchlist create error`,
-        detail: `${this.createWatchListName} is already exist.`,
+        severity: 'info',
+        summary: `Maximum 6 watchlist allowed.`,
+        detail: `Already reached to maximum watchlists.`,
       });
     }
+    this.createWatchListDialogVisible = false;
   }
   cancelNewWatchList() {
     this.createWatchListName = '';
     this.createWatchListDialogVisible = false;
+  }
+  deleteWatchList() {
+    this.watchListData = this.watchListData.filter(
+      (watchList) => watchList._id !== this.editWatchList?._id
+    );
+    this.editWatchList = undefined;
+    console.log('this.editWatchList', this.editWatchList);
   }
 }
