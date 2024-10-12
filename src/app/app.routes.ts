@@ -1,12 +1,14 @@
 import { Routes } from '@angular/router';
-import { AuthenticationComponent } from '../component/authentication/authentication.component';
-import { LoginComponent } from '../component/login/login.component';
+import { AuthenticationComponent } from '../component/authentication/route/authentication.component';
+import { LoginComponent } from '../component/authentication/login/login.component';
 import { LayoutComponent } from '../component/layout/layout.component';
+import { authGuard } from '../component/authentication/guards/auth/auth-gaurd.guard';
 
 export const routes: Routes = [
   {
     path: '',
     component: LayoutComponent,
+    // canActivate: [authGuard],
     children: [
       {
         path: '',
@@ -22,11 +24,10 @@ export const routes: Routes = [
       {
         path: '',
         loadChildren: () =>
-          import('../component/authentication/auth.routes').then(
+          import('../component/authentication/route/auth.routes').then(
             (m) => m.routes
           ),
       },
     ],
   },
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
 ];

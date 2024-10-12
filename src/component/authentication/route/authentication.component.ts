@@ -6,7 +6,6 @@ import { routes } from './auth.routes';
   selector: 'app-authentication',
   standalone: true,
   imports: [RouterOutlet],
-  templateUrl: './authentication.component.html',
-  styleUrl: './authentication.component.css',
+  template: `<router-outlet></router-outlet>`,
 })
 export class AuthenticationComponent {}
