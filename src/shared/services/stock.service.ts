@@ -41,6 +41,7 @@ export class StockService {
       const message = {
         a: 'subscribe',
         v: nifty200InstrumentalTockens,
+        mode: 'full',
       };
       // Send the message to the WebSocket server
       this.ws.send(JSON.stringify(message));

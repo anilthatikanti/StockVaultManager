@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { AfterViewInit, Component, HostListener, OnInit } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MenuItem, MessageService } from 'primeng/api';
@@ -17,8 +17,11 @@ import { WatchList } from '../../shared/interface/watchList.interface';
 import { ToastModule } from 'primeng/toast';
 import { InputTextModule } from 'primeng/inputtext';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { debounceTime, Subject } from 'rxjs';
+import { debounceTime, firstValueFrom, Subject } from 'rxjs';
 import { DialogModule } from 'primeng/dialog';
+import { createChart, Time } from 'lightweight-charts';
+import { HttpClient } from '@angular/common/http';
+import { HistoryData } from '../../shared/interface/response.interface';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -41,7 +44,7 @@ import { DialogModule } from 'primeng/dialog';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, AfterViewInit {
   nifty200: Stock[] = [];
   liveData: LiveData[] = [];
   innerHeight: number = window.innerHeight;
@@ -53,6 +56,9 @@ export class DashboardComponent implements OnInit {
   editWatchList!: WatchList | undefined;
   createWatchListDialogVisible: boolean = false;
   createWatchListName: string = '';
+  chartToken: number = 3329;
+  chartTimeFrame = '5minute';
+  ChartAreaSeries!: any;
 
   watchList: any[] = [];
   items: MenuItem[] = [
@@ -69,7 +75,8 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private stockService: StockService,
-    private messageService: MessageService
+    private messageService: MessageService,
+    private http: HttpClient
   ) {
     this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
       this.nifty200 = this.stockService.nifty200Data.filter((data: Stock) =>
@@ -94,6 +101,29 @@ export class DashboardComponent implements OnInit {
       } else {
         this.liveData[index] = data;
       }
+    });
+  }
+
+  ngAfterViewInit(): void {
+    let data = this.calculateDateRange(this.chartTimeFrame);
+    this.displyChart();
+    this.createChart();
+  }
+
+  createChart() {
+    const chartOptions = {
+      height: window.innerHeight - 600,
+      width: window.innerWidth - 300,
+      layout: {
+        textColor: 'black',
+        background: { color: 'white' },
+      },
+    };
+    const chart = createChart('chart-container', chartOptions);
+    this.ChartAreaSeries = chart.addAreaSeries({
+      lineColor: '#2962FF',
+      topColor: '#2962FF',
+      bottomColor: 'rgba(41, 98, 255, 0.28)',
     });
   }
 
@@ -224,6 +254,61 @@ export class DashboardComponent implements OnInit {
       (watchList) => watchList._id !== this.editWatchList?._id
     );
     this.editWatchList = undefined;
-    console.log('this.editWatchList', this.editWatchList);
+  }
+
+  async displyChart() {
+    let dataObject = this.calculateDateRange(this.chartTimeFrame);
+
+    let historyData: HistoryData = await firstValueFrom(
+      this.http.get<HistoryData>(
+        `https://api.investit.ai/data/historical?instrument_token=${this.chartToken}&interval=${this.chartTimeFrame}&from_date=${dataObject.startDate}&to_date=${dataObject.endDate}`
+      )
+    );
+    console.log('historyData', historyData);
+    if (historyData.status) {
+      let data = historyData.payload.map((item) => {
+        return {
+          time: (Date.parse(item.date) / 1000) as Time,
+          value: item.close,
+        };
+      });
+      console.log('data', data);
+      this.ChartAreaSeries.setData(data);
+    }
+  }
+
+  calculateDateRange(interval: string): { startDate: string; endDate: string } {
+    const currentDate = new Date();
+    let startDate = new Date();
+
+    switch (interval) {
+      case '60minute':
+        // Subtract 1 year
+        startDate.setFullYear(currentDate.getFullYear() - 1);
+        break;
+      case '30minute':
+        // Subtract 6 months
+        startDate.setMonth(currentDate.getMonth() - 6);
+        break;
+      case '15minute':
+        // Subtract 4 months
+        startDate.setMonth(currentDate.getMonth() - 4);
+        break;
+      case '5minute':
+        // Subtract 3 months
+        startDate.setMonth(currentDate.getMonth() - 3);
+        break;
+      default:
+        throw new Error('Invalid interval selected');
+    }
+
+    return {
+      startDate: new Date(startDate).toLocaleString('sv', {
+        timeZone: 'Asia/Kolkata',
+      }),
+      endDate: new Date(currentDate).toLocaleString('sv', {
+        timeZone: 'Asia/Kolkata',
+      }),
+    };
   }
 }
