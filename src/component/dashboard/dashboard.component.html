@@ -62,20 +62,16 @@
             class="px-3 pt-3 flex justify-content-between align-items-center"
           >
             <h5 class="text-base font-medium">Nifty 200 stocks</h5>
-            <p-button
-              label="View all"
-              size="small"
-              [style]="{ 'font-weight': 500, 'font-size': '16px' }"
-              [text]="true"
-              [link]="true"
+            <input
+              type="text"
+              pInputText
+              placeholder="Search stock"
+              (keyup)="searchStock($event)"
             />
           </div>
         </div>
       </ng-template>
-      <div
-        class="px-3 pt-3 overflow-auto"
-        [style]="{ height: innerHeight - 636 + 'px', }"
-      >
+      <div class="px-3 pt-3 overflow-auto" [style]="{ height: '35vh' }">
         @for (item of nifty200; track $index) { @if($index){
         <p-divider />
         }
@@ -99,7 +95,7 @@
             >
               <ng-template pTemplate="content" ()>
                 <div class="flex flex-column">
-                  <p class="text-sm">Select watchList</p>
+                  <p class="text-sm font-semibold">Select watchList</p>
                   <p-divider />
                   @for (watchList of watchListData; track $index) {
                   <div class="flex justify-content-between align-items-center">
@@ -114,7 +110,7 @@
                     ></i>
                     }@else {
                     <i
-                      class="pi pi-check-circle text-green-500"
+                      class="pi pi-check-circle text-green-500 cursor-pointer"
                       (click)="this.activeTabViewIndex = $index"
                     ></i>
                     }
@@ -178,13 +174,23 @@
           <div
             class="px-3 py-2 flex justify-content-between align-items-center"
           >
-            <h5 class="text-base font-medium">My watchlist</h5>
-            <p-button
-              label="20 Items"
-              size="small"
-              [style]="{ 'font-weight': 500, 'font-size': '16px' }"
-              [text]="true"
-            />
+            <div class="flex gap-2">
+              <span class="text-base font-medium">My watchlist</span>
+              <p-button
+                icon="pi pi-plus"
+                size="small"
+                [style]="{
+                  padding: '0px',
+                  width: '16px',
+                  'border-radius': '0px'
+                }"
+                (onClick)="createWatchListDialogVisible = true"
+                [outlined]="true"
+              />
+            </div>
+            <h5 class="text-base font-medium">
+              {{ getWatchListStocksCount() }} Items
+            </h5>
           </div>
         </div>
       </ng-template>
@@ -195,24 +201,11 @@
           [activeIndex]="activeTabViewIndex"
         >
           @for( watchList of watchListData;track $index){
-
           <p-tabPanel>
             <ng-template pTemplate="header">
-              @if(editWatchListId===watchList._id){
-              <input
-                type="text"
-                pInputText
-                [value]="
-                  this.watchListData[this.activeTabViewIndex].watchListName
-                "
-                (keyup.enter)="updateWatchListName($event)"
-                (blur)="updateWatchListName($event)"
-              />
-              }@else {
-              <div (dblclick)="editWatchListId = watchList._id">
+              <div (dblclick)="editWatchList = watchList">
                 {{ watchList.watchListName }}
               </div>
-              }
             </ng-template>
             @for(stock of watchList.stocks;track $index){ @if($index){
             <p-divider />
@@ -222,9 +215,7 @@
                 <i
                   class="pi pi-trash cursor-pointer"
                   [style]="{ 'font-size': '14px', color: 'tomato' }"
-                  (click)="
-                    deleteWatchListItem(watchList._id, stock.instrument_token)
-                  "
+                  (click)="deleteWatchListItem(watchList, stock)"
                 ></i>
                 <div>
                   {{ stock.name }}
@@ -263,9 +254,73 @@
             </div>
             }
           </p-tabPanel>
+
+          <!--Edit watchlist Dialog boxes -->
+          <p-dialog
+            header="Edit watchlist name"
+            [modal]="true"
+            [visible]="watchList._id === editWatchList?._id"
+          >
+            <div class="flex flex-column gap-2">
+              <label class="text-xs" for="watchList">watchlist name </label>
+              <input
+                #editWatchListName
+                pInputText
+                id="watchList"
+                [value]="editWatchList?.watchListName"
+              />
+            </div>
+
+            <div class="flex justify-content-end gap-2 mt-3">
+              <p-button
+                label="Cancel"
+                size="small"
+                severity="secondary"
+                (onClick)="editWatchList = undefined"
+              />
+              <p-button
+                label="Save"
+                size="small"
+                [disabled]="!editWatchListName.value.length"
+                (onClick)="updatedWatchListName(editWatchListName.value)"
+              />
+            </div>
+          </p-dialog>
+
           }
         </p-tabView>
       </ng-template>
     </p-card>
   </div>
 </div>
+<!-- Dialog boxes -->
+<p-dialog
+  header="Create watchList name"
+  [modal]="true"
+  [visible]="createWatchListDialogVisible"
+>
+  <div class="flex flex-column gap-2">
+    <label class="text-xs" for="watchList">Watchlist name </label>
+    <input
+      pInputText
+      id="watchList"
+      [(ngModel)]="createWatchListName"
+      placeholder="Enter watchlist name"
+    />
+  </div>
+
+  <div class="flex justify-content-end gap-2 mt-3">
+    <p-button
+      label="Cancel"
+      size="small"
+      severity="secondary"
+      (onClick)="cancelNewWatchList()"
+    />
+    <p-button
+      label="Save"
+      size="small"
+      [disabled]="!createWatchListName.length"
+      (onClick)="createWatchList()"
+    />
+  </div>
+</p-dialog>

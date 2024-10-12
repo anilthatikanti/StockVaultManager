@@ -15,6 +15,10 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { DividerModule } from 'primeng/divider';
 import { WatchList } from '../../shared/interface/watchList.interface';
 import { ToastModule } from 'primeng/toast';
+import { InputTextModule } from 'primeng/inputtext';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { debounceTime, Subject } from 'rxjs';
+import { DialogModule } from 'primeng/dialog';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -30,6 +34,9 @@ import { ToastModule } from 'primeng/toast';
     TabViewModule,
     FormsModule,
     ToastModule,
+    FloatLabelModule,
+    InputTextModule,
+    DialogModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
@@ -42,7 +49,10 @@ export class DashboardComponent implements OnInit {
   watchListData: WatchList[] = watchListData;
   showAddButtonId!: number;
   activeTabViewIndex: number = 0;
-  editWatchListId!: number | undefined;
+  searchSubject: Subject<string> = new Subject();
+  editWatchList!: WatchList | undefined;
+  createWatchListDialogVisible: boolean = false;
+  createWatchListName: string = '';
 
   watchList: any[] = [];
   items: MenuItem[] = [
@@ -60,7 +70,13 @@ export class DashboardComponent implements OnInit {
   constructor(
     private stockService: StockService,
     private messageService: MessageService
-  ) {}
+  ) {
+    this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
+      this.nifty200 = this.stockService.nifty200Data.filter((data: Stock) =>
+        data.trading_symbol.includes(value.trim().toUpperCase())
+      );
+    });
+  }
 
   async ngOnInit() {
     await this.stockService.loadNifty200Tokens();
@@ -68,7 +84,7 @@ export class DashboardComponent implements OnInit {
     let instrument_token = this.nifty200.map(
       (data: Stock) => data.instrument_token
     );
-    await this.stockService.connect(instrument_token);
+    this.stockService.connect(instrument_token);
     this.stockService.liveData.subscribe((data: LiveData) => {
       let index = this.liveData.findIndex(
         (stock) => stock.instrument_token === data.instrument_token
@@ -113,14 +129,21 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  deleteWatchListItem(watchListId: number, token: number) {
+  deleteWatchListItem(watchListItem: WatchList, stockItem: Stock) {
     this.watchListData.forEach((watchList: WatchList) => {
-      if (watchList._id === watchListId) {
+      if (watchList._id === watchListItem._id) {
+        watchListItem = watchList;
         watchList.stocks = watchList.stocks.filter(
-          (stock: Stock) => stock.instrument_token !== token
+          (stock: Stock) =>
+            stock.instrument_token !== stockItem.instrument_token
         );
       }
       return watchList;
+    });
+    this.messageService.add({
+      severity: 'success',
+      summary: `${watchListItem.watchListName} stock deleted.`,
+      detail: `${stockItem.name} deleted from ${watchListItem.watchListName}.`,
     });
   }
 
@@ -134,19 +157,56 @@ export class DashboardComponent implements OnInit {
           watchList.stocks.push(stock);
           this.messageService.add({
             severity: 'success',
-            summary: `${watchList.watchListName} updated`,
-            detail: `${stock.name} added into ${watchList.watchListName}`,
+            summary: `${watchList.watchListName} updated.`,
+            detail: `${stock.name} added into ${watchList.watchListName}.`,
           });
         }
       }
     });
   }
 
-  updateWatchListName(event: any) {
-    if (event.target.value) {
-      this.watchListData[this.activeTabViewIndex].watchListName =
-        event.target.value;
+  searchStock(event: any) {
+    this.searchSubject.next(event.target.value);
+  }
+  getWatchListStocksCount() {
+    return this.watchListData[this.activeTabViewIndex].stocks.length;
+  }
+  updatedWatchListName(watchListNewName: string) {
+    this.watchListData.forEach((watchList: WatchList) => {
+      if (watchList._id === this.editWatchList?._id) {
+        this.messageService.add({
+          severity: 'success',
+          summary: `Watch list name updated`,
+          detail: `${watchList.watchListName} is changed to ${watchListNewName}`,
+        });
+        watchList.watchListName = watchListNewName;
+        this.editWatchList = undefined;
+      }
+      return watchList;
+    });
+  }
+  createWatchList() {
+    let index = this.watchListData.findIndex(
+      (watchList) => watchList.watchListName === this.createWatchListName
+    );
+    if (index === -1) {
+      this.watchListData.push({
+        _id: Date.now(),
+        watchListName: this.createWatchListName,
+        stocks: [],
+      });
+      this.createWatchListDialogVisible = false;
+      this.createWatchListName = '';
+    } else {
+      this.messageService.add({
+        severity: 'warning',
+        summary: `Watchlist create error`,
+        detail: `${this.createWatchListName} is already exist.`,
+      });
     }
-    this.editWatchListId = undefined;
+  }
+  cancelNewWatchList() {
+    this.createWatchListName = '';
+    this.createWatchListDialogVisible = false;
   }
 }

@@ -34,11 +34,10 @@ export class StockService {
     }
   }
 
-  async connect(nifty200InstrumentalTockens: number[]) {
-    console.log('nifty200InstrumentalTockens', nifty200InstrumentalTockens);
-    this.ws = await new WebSocket('wss://data.investit.ai');
+  connect(nifty200InstrumentalTockens: number[]) {
+    this.ws = new WebSocket('wss://data.investit.ai');
+    console.log('WebSocket connection established');
     this.ws.onopen = () => {
-      console.log('WebSocket connection established');
       const message = {
         a: 'subscribe',
         v: nifty200InstrumentalTockens,
