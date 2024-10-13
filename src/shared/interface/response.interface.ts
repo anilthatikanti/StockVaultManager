@@ -8,11 +8,11 @@ export type ApiResponse = {
 
 export type HistoryData = {
   message: string;
-  payload: Hystory[];
+  payload: History[];
   status: boolean;
 };
 
-type Hystory = {
+export type History = {
   close: number;
   date: string;
   high: number;

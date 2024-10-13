@@ -14,29 +14,63 @@
       <ng-template pTemplate="header">
         <div class="h-full">
           <div class="p-3" [style]="{ 'background-color': '#f2f4f7' }">
-            <h5 class="text-lg font-medium">Nifty 50 line chart</h5>
+            <h5 class="text-lg font-medium">
+              {{ selectedStock.trading_symbol }}
+            </h5>
           </div>
           <div class="p-3 flex justify-content-between">
             <div class="flex flex-column justify-content-center">
-              <h2 class="font-medium">24,823.15</h2>
-              <p class="text-green-500">+11.65(0.047%)</p>
+              <h2 class="font-medium text-3xl">
+                {{
+                  getLiveItem(selectedStock.instrument_token, "current")
+                    ? getLiveItem(selectedStock.instrument_token, "current")
+                    : "-"
+                }}
+              </h2>
+              <p
+                class="text-green-500"
+                [ngStyle]="
+                  getLiveItem(selectedStock.instrument_token, 'change') < 0
+                    ? { color: 'red' }
+                    : { color: 'green' }
+                "
+              >
+                {{
+                  getLiveItem(selectedStock.instrument_token, "change") < 0
+                    ? ""
+                    : "+"
+                }}
+                {{
+                  getLiveItem(selectedStock.instrument_token, "change").toFixed(
+                    2
+                  )
+                }}%
+              </p>
             </div>
             <div class="flex gap-4">
               <div>
                 <p class="font-sm" [style]="{ color: '#a4acba' }">Open</p>
-                <p class="font-semibold">24,845.40</p>
+                <p class="font-semibold">
+                  {{ selectedChartStatisticData?.open?.toFixed(2) }}
+                </p>
               </div>
               <div>
-                <p class="font-sm" [style]="{ color: '#a4acba' }">Prev close</p>
-                <p class="font-semibold">24,845.40</p>
+                <p class="font-sm" [style]="{ color: '#a4acba' }">Close</p>
+                <p class="font-semibold">
+                  {{ selectedChartStatisticData?.close?.toFixed(2) }}
+                </p>
               </div>
               <div>
                 <p class="font-sm" [style]="{ color: '#a4acba' }">Low</p>
-                <p class="font-semibold">24,845.40</p>
+                <p class="font-semibold">
+                  {{ selectedChartStatisticData?.low?.toFixed(2) }}
+                </p>
               </div>
               <div>
                 <p class="font-sm" [style]="{ color: '#a4acba' }">High</p>
-                <p class="font-semibold">24,845.40</p>
+                <p class="font-semibold">
+                  {{ selectedChartStatisticData?.high?.toFixed(2) }}
+                </p>
               </div>
             </div>
           </div>
@@ -46,7 +80,7 @@
     </p-card>
   </div>
 
-  <div class="flex gap-3 w-full" [style]="{ height: '45vh' }">
+  <div class="flex gap-3 w-full" [style]="{ height: '40vh' }">
     <p-card
       [style]="{
         height: '100%',
@@ -120,7 +154,12 @@
               </ng-template>
             </p-overlayPanel>
 
-            <p class="text-sm font-normal">{{ item.trading_symbol }}</p>
+            <p
+              class="text-sm font-normal cursor-pointer"
+              (click)="selectingStock(item)"
+            >
+              {{ item.trading_symbol }}
+            </p>
           </div>
           <div class="flex flex-column align-items-end">
             <p>

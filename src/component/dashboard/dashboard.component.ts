@@ -21,7 +21,10 @@ import { debounceTime, firstValueFrom, Subject } from 'rxjs';
 import { DialogModule } from 'primeng/dialog';
 import { createChart, Time } from 'lightweight-charts';
 import { HttpClient } from '@angular/common/http';
-import { HistoryData } from '../../shared/interface/response.interface';
+import {
+  History,
+  HistoryData,
+} from '../../shared/interface/response.interface';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -56,9 +59,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   editWatchList!: WatchList | undefined;
   createWatchListDialogVisible: boolean = false;
   createWatchListName: string = '';
-  chartToken: number = 3329;
+  selectedStock: Stock = {
+    exchange: 'NSE',
+    exchange_token: 13,
+    instrument_token: 3329,
+    instrument_type: 'EQ',
+    name: 'ABB INDIA',
+    segment: '',
+    trading_symbol: 'ABB',
+  };
   chartTimeFrame = '5minute';
   ChartAreaSeries!: any;
+  selectedChartStatisticData!: History;
 
   watchList: any[] = [];
   items: MenuItem[] = [
@@ -71,6 +83,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   onWindowResize() {
     this.innerHeight = window.innerHeight;
     this.innerWidth = window.innerWidth;
+    console.log('this.innerWidth', this.innerWidth);
   }
 
   constructor(
@@ -78,6 +91,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private messageService: MessageService,
     private http: HttpClient
   ) {
+    this.onWindowResize();
     this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
       this.nifty200 = this.stockService.nifty200Data.filter((data: Stock) =>
         data.trading_symbol.includes(value.trim().toUpperCase())
@@ -88,6 +102,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   async ngOnInit() {
     await this.stockService.loadNifty200Tokens();
     this.nifty200 = this.stockService.nifty200Data;
+    this.selectedStock = this.stockService.nifty200Data[0];
     let instrument_token = this.nifty200.map(
       (data: Stock) => data.instrument_token
     );
@@ -111,9 +126,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   createChart() {
+    let chartDiv = document.getElementById('chart-container');
+
     const chartOptions = {
-      height: window.innerHeight - 600,
-      width: window.innerWidth - 300,
+      height: this.innerHeight - 730,
+      width: this.innerWidth - 280,
       layout: {
         textColor: 'black',
         background: { color: 'white' },
@@ -256,15 +273,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.editWatchList = undefined;
   }
 
+  selectingStock(stock: Stock) {
+    this.selectedStock = stock;
+    this.displyChart();
+  }
+
   async displyChart() {
     let dataObject = this.calculateDateRange(this.chartTimeFrame);
-
     let historyData: HistoryData = await firstValueFrom(
       this.http.get<HistoryData>(
-        `https://api.investit.ai/data/historical?instrument_token=${this.chartToken}&interval=${this.chartTimeFrame}&from_date=${dataObject.startDate}&to_date=${dataObject.endDate}`
+        `https://api.investit.ai/data/historical?instrument_token=${this.selectedStock.instrument_token}&interval=${this.chartTimeFrame}&from_date=${dataObject.startDate}&to_date=${dataObject.endDate}`
       )
     );
-    console.log('historyData', historyData);
     if (historyData.status) {
       let data = historyData.payload.map((item) => {
         return {
@@ -272,8 +292,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           value: item.close,
         };
       });
-      console.log('data', data);
+      this.selectedChartStatisticData =
+        historyData.payload[historyData.payload.length - 1];
       this.ChartAreaSeries.setData(data);
+      console.log(
+        'this.selectedChartStatisticData',
+        this.selectedChartStatisticData
+      );
     }
   }
 
