@@ -1,1 +1,83 @@
-<p>signup works!</p>
+<div class="h-screen w-full flex justify-content-center align-items-center">
+  <div class="w-20 h-20rem flex flex-column align-items-center gap-4">
+    <div class="text-center text-blue-700">
+      <p>Logo</p>
+      <h1 class="font-medium">Create your account</h1>
+      <p class="text-bluegray-400 text-xs">
+        Just a few quick things to get started with us!
+      </p>
+    </div>
+    <div class="w-10 felx flex-column" style="height: fit-content">
+      <div class="flex flex-column gap-1 mb-3">
+        <label for="email" class="text-xs font-medium">Email</label>
+        <input
+          pInputText
+          id="email"
+          class="text-bluegray-400 text-xs"
+          [style]="{
+            height: '34px',
+            padding: '8px',
+            color: '#667085',
+            'font-weight': 500
+          }"
+          placeholder="Enter your email"
+        />
+      </div>
+      <div class="flex flex-column gap-1 mb-3">
+        <label for="password" class="text-xs font-medium">Password</label>
+        <input
+          pInputText
+          id="password"
+          [style]="{
+            height: '34px',
+            padding: '8px',
+            color: '#667085',
+            'font-weight': 500
+          }"
+          placeholder="Enter your password"
+          aria-describedby="password-help"
+        />
+        <small id="password-help" class="text-bluegray-400 text-xs">
+          Password must be at least 8 characters.
+        </small>
+      </div>
+      <div class="flex flex-column gap-1 mb-3">
+        <label for="password" class="text-xs font-medium"
+          >Confirm password</label
+        >
+        <input
+          pInputText
+          id="password"
+          [style]="{
+            height: '34px',
+            padding: '8px',
+            color: '#667085',
+            'font-weight': 500
+          }"
+          placeholder="Re-enter your password"
+        />
+      </div>
+      <div class="flex flex-column">
+        <p-button
+          class="w-full"
+          [style]="{ width: '100%', padding: '7px', }"
+          size="small"
+          label="Sign up"
+        />
+        <div
+          class="w-full flex justify-content-center align-items-center gap-1"
+        >
+          <p class="text-bluegray-400 text-xs">Already have an account?</p>
+          <p-button
+            class="text-xs"
+            label="Sign in"
+            [link]="true"
+            [text]="true"
+            [routerLink]="['/', 'auth', 'login']"
+            [style]="{ padding: '8px 0px', 'font-size': '12px' }"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

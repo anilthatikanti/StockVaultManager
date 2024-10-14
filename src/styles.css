@@ -52,3 +52,6 @@ p {
   padding: 4px;
   font-size: 12px;
 }
+.p-button-label {
+  font-weight: 500;
+}
