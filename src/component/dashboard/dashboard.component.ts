@@ -71,6 +71,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   chartTimeFrame = '5minute';
   ChartAreaSeries!: any;
   selectedChartStatisticData!: History;
+  stockHistoryData!: { time: Time; value: number }[];
 
   watchList: any[] = [];
   items: MenuItem[] = [
@@ -83,7 +84,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   onWindowResize() {
     this.innerHeight = window.innerHeight;
     this.innerWidth = window.innerWidth;
-    console.log('this.innerWidth', this.innerWidth);
   }
 
   constructor(
@@ -116,6 +116,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       } else {
         this.liveData[index] = data;
       }
+      this.upDateChartData(data);
     });
   }
 
@@ -286,7 +287,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       )
     );
     if (historyData.status) {
-      let data = historyData.payload.map((item) => {
+      this.stockHistoryData = historyData.payload.map((item) => {
         return {
           time: (Date.parse(item.date) / 1000) as Time,
           value: item.close,
@@ -294,11 +295,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       });
       this.selectedChartStatisticData =
         historyData.payload[historyData.payload.length - 1];
-      this.ChartAreaSeries.setData(data);
-      console.log(
-        'this.selectedChartStatisticData',
-        this.selectedChartStatisticData
-      );
+      this.ChartAreaSeries.setData(this.stockHistoryData);
     }
   }
 
@@ -335,5 +332,34 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         timeZone: 'Asia/Kolkata',
       }),
     };
+  }
+  upDateChartData(data: LiveData) {
+    if (this.selectedStock.instrument_token === data.instrument_token) {
+      let lastTimer = new Date(this.selectedChartStatisticData.date);
+      let add5Time = lastTimer.setMinutes(
+        new Date(this.selectedChartStatisticData.date).getMinutes() + 5
+      );
+      let add5TimeConvertToAsia = new Date(add5Time).toLocaleString('sv', {
+        timeZone: 'Asia/Kolkata',
+      });
+
+      console.log('lastTimer.getTime()', lastTimer.getTime());
+      console.log('new Date().getTime()', new Date().getTime());
+      console.log(
+        'Date.parse(add5TimeConvertToAsia) / 1000) as Time',
+        (Date.parse(add5TimeConvertToAsia) / 1000) as Time
+      );
+      if (lastTimer.getTime() < new Date().getTime()) {
+        let object: { time: Time; value: number } = {
+          time: (Date.parse(add5TimeConvertToAsia) / 1000) as Time,
+          value: data.last_price,
+        };
+        this.stockHistoryData.push(object);
+      } else {
+        this.stockHistoryData[this.stockHistoryData.length - 1].value =
+          data.last_price;
+      }
+      this.ChartAreaSeries.setData(this.stockHistoryData);
+    }
   }
 }

@@ -23,17 +23,21 @@
               <h2 class="font-medium text-3xl">
                 {{
                   getLiveItem(selectedStock.instrument_token, "current")
-                    ? getLiveItem(selectedStock.instrument_token, "current")
+                    ? getLiveItem(
+                        selectedStock.instrument_token,
+                        "current"
+                      ).toFixed(2)
                     : "-"
                 }}
               </h2>
+
               <p
-                class="text-green-500"
-                [ngStyle]="
-                  getLiveItem(selectedStock.instrument_token, 'change') < 0
-                    ? { color: 'red' }
-                    : { color: 'green' }
-                "
+                [ngStyle]="{
+                  color:
+                    getLiveItem(selectedStock.instrument_token, 'change') < 0
+                      ? 'tomato'
+                      : 'green'
+                }"
               >
                 {{
                   getLiveItem(selectedStock.instrument_token, "change") < 0
