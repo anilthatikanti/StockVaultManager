@@ -1,1 +1,75 @@
-<p>verify-email works!</p>
+<div class="h-screen w-full flex justify-content-center align-items-center">
+  <div class="mt-7 text-center">
+    @if ( mode === 'checkInbox') {
+    <img
+      src="assets/images/illustrations/email_sent.svg"
+      alt="verifying email"
+      width="220px"
+    />
+    <h5 class="proxima-30 mb-4 gray-700">Email Verification</h5>
+    <p class="proxima-16 mb-3 gray-700">
+      A verification link has been sent to {{ email }}. Please check your inbox
+      to complete the login process.
+    </p>
+
+    <div class="flex align-items-center justify-content-center">
+      <p class="proxima-16 gray-700">Didn't receive the email?</p>
+      <p-button
+        [disabled]="isVerifyEmailSend"
+        label="Click to resend"
+        [link]="true"
+        [style]="{ color: '#3b82f5' }"
+        (onClick)="onClickResendVerificationLink()"
+      />
+    </div>
+    @if(isResendButtonDisabled){
+    <p class="proxima-16 text-center gray-700 mt-3">
+      Resend email in: <span class="gray-700 bold">{{ timer }}s</span>
+    </p>
+    }
+    <div class="flex align-items-center justify-content-center mt-5">
+      <i class="pi pi-arrow-left mr-2 brass-600 text-sm"></i>
+      <p-button
+        [disabled]="isVerifyEmailSend"
+        label="Back to Login"
+        [link]="true"
+        [style]="{ color: '#3b82f5' }"
+        (onClick)="onClickBackToLogin()"
+      />
+    </div>
+    } @else if( mode == 'verifyEmail') {
+    <img
+      src="assets/images/illustrations/email_verifying.svg"
+      alt="verifying email"
+      width="220"
+    />
+    <h5 class="proxima-30 semi-bold mb-2">
+      Please wait while we verify your email address...
+    </h5>
+    <p class="proxima-18">This should only take a few moments...</p>
+    } @else if(mode === 'emailVerifyFailed'){
+    <div class="text-center">
+      <img
+        src="assets/images/illustrations/verify_failed.svg"
+        alt="email verify failed"
+        class="mb-2"
+        width="220px"
+      />
+      <h4 class="proxima-30 semi-bold mb-3">Email Verification Failed</h4>
+      <p class="proxima-16">
+        {{ emailVerificationFailureMessage }}
+      </p>
+    </div>
+    <div class="flex align-items-center justify-content-center mt-5">
+      <i class="pi pi-arrow-left mr-2 brass-600 text-sm"></i>
+      <p-button
+        [disabled]="isVerifyEmailSend"
+        label="Back to Login"
+        [link]="true"
+        (onClick)="onClickBackToLogin()"
+      />
+    </div>
+
+    }
+  </div>
+</div>

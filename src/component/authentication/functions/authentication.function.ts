@@ -6,7 +6,7 @@ import {
 } from '@angular/fire/auth';
 import { Router } from '@angular/router';
 import { MessageService } from 'primeng/api';
-import { environment } from '../../../environments/environment';
+import { environment, WEB_APP_URL } from '../../../environments/environment';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 
@@ -200,36 +200,36 @@ export const logoutUser = async (firebaseAuth: Auth, force: boolean = true) => {
  * @param auth
  * @param messageService
  */
-// export const sendUserEmailVerificationLink = async (
-//   auth: Auth,
-//   messageService: MessageService
-// ) => {
-//   let actionCodeSettings = {
-//     url: WEB_APP_URL,
-//     handleCodeInApp: true,
-//   };
-//   try {
-//     if (environment.useEmulators) {
-//       await sendEmailVerification(auth.currentUser!);
-//     } else {
-//       await sendEmailVerification(auth.currentUser!, actionCodeSettings);
-//     }
-//     messageService.add({
-//       severity: 'success',
-//       summary: 'Success',
-//       detail: 'Verification email has been sent to your email address',
-//     });
-//     return true;
-//   } catch (error: any) {
-//     console.log('sendUserEmailVerificationLink: [ERR]: ', error.message);
-//     messageService.add({
-//       severity: 'error',
-//       summary: 'Error',
-//       detail: 'Failed to send the verification email. Try again later',
-//     });
-//     return false;
-//   }
-// };
+export const sendUserEmailVerificationLink = async (
+  auth: Auth,
+  messageService: MessageService
+) => {
+  let actionCodeSettings = {
+    url: WEB_APP_URL,
+    handleCodeInApp: true,
+  };
+  try {
+    if (environment.useEmulators) {
+      await sendEmailVerification(auth.currentUser!);
+    } else {
+      await sendEmailVerification(auth.currentUser!, actionCodeSettings);
+    }
+    messageService.add({
+      severity: 'success',
+      summary: 'Success',
+      detail: 'Verification email has been sent to your email address',
+    });
+    return true;
+  } catch (error: any) {
+    console.log('sendUserEmailVerificationLink: [ERR]: ', error.message);
+    messageService.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Failed to send the verification email. Try again later',
+    });
+    return false;
+  }
+};
 
 /**
  * A function to create user document in mongodb after the successful user creation in the firebase.

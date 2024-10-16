@@ -1,0 +1,104 @@
+<div
+  class="h-screen w-full flex flex-column justify-content-center align-items-center"
+>
+  @if(isMailSent){
+  <div class="text-center gray-700">
+    <img
+      src="assets/images/illustrations/email_sent.svg"
+      alt="verifying email"
+      width="220px"
+    />
+    <h5 class="proxima-30 mb-2">Check your Email</h5>
+    <h6 class="proxima-16 mb-4 font-light">
+      A password reset link has been sent to
+      <span class="font-semibold"> {{ email?.value }} </span> Please<br />
+      check your inbox to reset your password.
+    </h6>
+  </div>
+  <div class="flex align-items-center justify-content-center mb-2">
+    <p class="proxima-16 gray-700">Didn't receive the email?</p>
+    <p-button
+      [disabled]="isResendButtonDisabled"
+      label="Click to resend"
+      [link]="true"
+      [text]="true"
+      [style]="{
+        padding: '8px 0px',
+        'font-size': '12px',
+        color: '#3b82f5'
+      }"
+      (onClick)="forgotPassword()"
+    />
+  </div>
+  @if(isResendButtonDisabled){
+  <p class="proxima-16 text-center gray-700 mt-3">
+    Resend email in: <span class="gray-700 bold">{{ timer }}s</span>
+  </p>
+  }
+  <div class="flex align-items-center justify-content-center mt-5">
+    <i class="pi pi-arrow-left mr-2 brass-600 text-sm"></i>
+    <p-button
+      label="Back to Login"
+      [link]="true"
+      [disabled]="isResendButtonDisabled"
+      [style]="{ color: '#3b82f5' }"
+      (onClick)="onClickBackToLogin()"
+    />
+  </div>
+
+  }@else {
+  <div class="w-20 h-24rem flex flex-column align-items-center gap-4">
+    <div class="text-center text-blue-700">
+      <img
+        src="assets/images/logos/stocx_app_main_logo.png"
+        height="65"
+        width="160"
+      />
+      <h1 class="font-medium text-blue-500">Forgot password</h1>
+      <p class="text-bluegray-400 text-xs">
+        Change password with your email ID.
+      </p>
+    </div>
+    <form
+      [formGroup]="forgotPasswordForm"
+      (ngSubmit)="forgotPassword()"
+      class="w-full"
+    >
+      <div class="flex flex-column gap-1 mb-2">
+        <label for="email" class="text-xs font-medium">Email</label>
+        <input
+          pInputText
+          id="email"
+          formControlName="email"
+          class="text-bluegray-400 text-xs"
+          type="email"
+          [style]="{
+            height: '34px',
+            padding: '8px',
+            color: '#667085',
+            'font-weight': 500
+          }"
+          placeholder="Enter your email"
+        />
+
+        <small id="email-error" class="text-xs p-error block">
+          @if(email?.errors?.['required']&&email?.dirty){
+          <p>Email is required</p>
+          }@else if(email?.errors?.['pattern']){
+          <p>Please provide a valid email address.</p>
+          }
+        </small>
+      </div>
+      <div class="flex justify-content-end gap-2 mt-4">
+        <p-button
+          class="w-full"
+          type="submit"
+          [style]="{ width: '100%', padding: '7px',  }"
+          size="small"
+          label="Send link "
+        />
+      </div>
+    </form>
+  </div>
+  }
+</div>

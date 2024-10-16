@@ -336,24 +336,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   upDateChartData(data: LiveData) {
     if (this.selectedStock.instrument_token === data.instrument_token) {
       let lastTimer = new Date(this.selectedChartStatisticData.date);
+
       let add5Time = lastTimer.setMinutes(
         new Date(this.selectedChartStatisticData.date).getMinutes() + 5
       );
+
       let add5TimeConvertToAsia = new Date(add5Time).toLocaleString('sv', {
         timeZone: 'Asia/Kolkata',
       });
+      const now = new Date();
+      const isWithinRestrictedTime =
+        (now.getHours() >= 15 && now.getMinutes() >= 30) ||
+        (now.getHours() < 9 && now.getMinutes() > 15);
 
-      console.log('lastTimer.getTime()', lastTimer.getTime());
-      console.log('new Date().getTime()', new Date().getTime());
-      console.log(
-        'Date.parse(add5TimeConvertToAsia) / 1000) as Time',
-        (Date.parse(add5TimeConvertToAsia) / 1000) as Time
-      );
-      if (lastTimer.getTime() < new Date().getTime()) {
+      if (
+        new Date().getTime() > new Date(add5Time).getTime() &&
+        isWithinRestrictedTime
+      ) {
         let object: { time: Time; value: number } = {
           time: (Date.parse(add5TimeConvertToAsia) / 1000) as Time,
           value: data.last_price,
         };
+        this.selectedChartStatisticData.date = add5TimeConvertToAsia;
         this.stockHistoryData.push(object);
       } else {
         this.stockHistoryData[this.stockHistoryData.length - 1].value =

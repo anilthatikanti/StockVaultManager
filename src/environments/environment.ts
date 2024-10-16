@@ -11,3 +11,4 @@ export const environment = {
   production: false,
   useEmulators: true,
 };
+export const WEB_APP_URL = 'http://localhost:4200';

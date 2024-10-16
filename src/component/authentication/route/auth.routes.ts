@@ -4,8 +4,8 @@ import { LoginComponent } from '../login/login.component';
 import { negAuthGuard } from '../guards/neg-auth/neg-auth-gaurd.guard';
 import { authGuard } from '../guards/auth/auth-gaurd.guard';
 import { VerifyEmailComponent } from '../verify-email/verify-email.component';
-import { ForgotPasswardComponent } from '../forgot-passward/forgot-passward/forgot-passward.component';
-import { ResetPaswwordComponent } from '../reset-paswword/reset-paswword.component';
+import { ForgotPasswordComponent } from '../forgot-password/forgot-passward.component';
+import { ResetPaswwordComponent } from '../reset-password/reset-password.component';
 
 export const routes: Routes = [
   { path: 'signup', component: SignupComponent, canActivate: [negAuthGuard] },
@@ -17,7 +17,7 @@ export const routes: Routes = [
   },
   {
     path: 'forgot-password',
-    component: ForgotPasswardComponent,
+    component: ForgotPasswordComponent,
     canActivate: [negAuthGuard],
   },
   {
