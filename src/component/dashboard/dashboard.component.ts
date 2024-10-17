@@ -70,6 +70,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   };
   chartTimeFrame = '5minute';
   ChartAreaSeries!: any;
+  chart: any;
   selectedChartStatisticData!: History;
   stockHistoryData!: { time: Time; value: number }[];
 
@@ -84,6 +85,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   onWindowResize() {
     this.innerHeight = window.innerHeight;
     this.innerWidth = window.innerWidth;
+    if (this.chart) {
+      this.chart.resize(this.innerWidth - 250, this.innerHeight - 680);
+    }
   }
 
   constructor(
@@ -94,7 +98,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.onWindowResize();
     this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
       this.nifty200 = this.stockService.nifty200Data.filter((data: Stock) =>
-        data.trading_symbol.includes(value.trim().toUpperCase())
+        data.trading_symbol.startsWith(value.trim().toUpperCase())
       );
     });
   }
@@ -130,19 +134,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     let chartDiv = document.getElementById('chart-container');
 
     const chartOptions = {
-      height: this.innerHeight - 730,
-      width: this.innerWidth - 280,
+      height: this.innerHeight - 680,
+      width: this.innerWidth - 300,
       layout: {
         textColor: 'black',
         background: { color: 'white' },
       },
     };
-    const chart = createChart('chart-container', chartOptions);
-    this.ChartAreaSeries = chart.addAreaSeries({
+    this.chart = createChart('chart-container', chartOptions);
+    this.ChartAreaSeries = this.chart.addAreaSeries({
       lineColor: '#2962FF',
       topColor: '#2962FF',
       bottomColor: 'rgba(41, 98, 255, 0.28)',
     });
+    console.log('this.innerHeight', this.innerHeight);
+    console.log(
+      'this.innerHeight - (this.innerHeight - 700)',
+      this.innerHeight / 2
+    );
   }
 
   getLiveItem(token: number, type?: string): number {
@@ -235,7 +244,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
   createWatchList() {
-    if (this.watchListData.length < 5) {
+    if (this.watchListData.length < 6) {
       let index = this.watchListData.findIndex(
         (watchList) => watchList.watchListName === this.createWatchListName
       );

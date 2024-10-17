@@ -218,6 +218,7 @@ export class LayoutComponent implements OnInit {
         summary: 'Success',
         detail: 'Password updated',
       });
+
       this.changePassword = false;
     } catch (error: any) {
       console.log('createPassword [ERR]:', error);

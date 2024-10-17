@@ -26,11 +26,11 @@ export class AppComponent implements AfterViewInit {
     titleService.setTitle(`Angular-stock | ${0.01}`);
     toast.messageService = messageService;
 
-    // if (environment.useEmulators) {
-    //   console.log('environment.useEmulators', environment.useEmulators);
-    //   connectAuthEmulator(firebaseAuth, 'http://127.0.0.1:9099');
-    //   connectStorageEmulator(firebaseStorage, '127.0.0.1', 9199);
-    // }
+    if (environment.useEmulators) {
+      console.log('environment.useEmulators', environment.useEmulators);
+      connectAuthEmulator(firebaseAuth, 'http://127.0.0.1:9099');
+      connectStorageEmulator(firebaseStorage, '127.0.0.1', 9199);
+    }
   }
   ngAfterViewInit(): void {
     this.clearFirebaseWarningTag();
