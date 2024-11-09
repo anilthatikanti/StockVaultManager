@@ -78,7 +78,7 @@ export class VerifyEmailComponent implements OnInit {
           user.reload();
           if (user.emailVerified) {
             clearInterval(interval);
-            window.location.href = `${WEB_APP_URL}`;
+            window.location.href = `${this.router.url ?? WEB_APP_URL}`;
           }
         }
       }, 1000);
@@ -110,13 +110,14 @@ export class VerifyEmailComponent implements OnInit {
       return;
     }
     let isEmailSent = await sendUserEmailVerificationLink(
+      window.location.host,
       this.firebaseAuth,
       this.toast.messageService!
     );
     if (isEmailSent) {
       this.startTimer();
     } else {
-      await logoutUser(this.firebaseAuth);
+      // await logoutUser(this.firebaseAuth);
     }
   }
 

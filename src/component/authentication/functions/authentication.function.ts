@@ -201,17 +201,20 @@ export const logoutUser = async (firebaseAuth: Auth, force: boolean = true) => {
  * @param messageService
  */
 export const sendUserEmailVerificationLink = async (
+  appUrl: string,
   auth: Auth,
   messageService: MessageService
 ) => {
+  console.log('appUrl', appUrl);
   let actionCodeSettings = {
-    url: WEB_APP_URL,
+    url: environment.production ? appUrl : WEB_APP_URL,
     handleCodeInApp: true,
   };
   try {
     if (environment.useEmulators) {
       await sendEmailVerification(auth.currentUser!);
     } else {
+      console.log('actionCodeSettings', actionCodeSettings);
       await sendEmailVerification(auth.currentUser!, actionCodeSettings);
     }
     messageService.add({
