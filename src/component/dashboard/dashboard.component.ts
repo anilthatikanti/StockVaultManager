@@ -306,6 +306,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         historyData.payload[historyData.payload.length - 1];
       this.ChartAreaSeries.setData(this.stockHistoryData);
     }
+    console.log(
+      'this.selectedChartStatisticData',
+      this.selectedChartStatisticData
+    );
   }
 
   calculateDateRange(interval: string): { startDate: string; endDate: string } {
