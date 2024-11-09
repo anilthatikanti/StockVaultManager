@@ -1,4 +1,5 @@
 <p-toast />
+
 <div class="h-full flex flex-column gap-3">
   <h3 class="text-primary m-0 font-medium">Welcome to Finance Books!</h3>
   <div>
@@ -51,6 +52,8 @@
                 }}%
               </p>
             </div>
+            @if(selectedChartStatisticData){
+
             <div class="flex gap-4">
               <div>
                 <p class="font-sm" [style]="{ color: '#a4acba' }">Open</p>
@@ -77,6 +80,7 @@
                 </p>
               </div>
             </div>
+            }
           </div>
         </div>
       </ng-template>
