@@ -207,7 +207,7 @@ export const sendUserEmailVerificationLink = async (
 ) => {
   console.log('appUrl', appUrl);
   let actionCodeSettings = {
-    url: environment.production ? appUrl : WEB_APP_URL,
+    url: environment.production ? `https://${appUrl}` : WEB_APP_URL,
     handleCodeInApp: true,
   };
   try {
