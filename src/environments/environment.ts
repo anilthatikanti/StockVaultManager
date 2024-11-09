@@ -8,7 +8,7 @@ export const environment = {
     appId: '1:375284713381:web:083f88f5ba2a2fab658a4c',
     measurementId: 'G-W89BM4HVZ1',
   },
-  production: false,
-  useEmulators: true,
+  production: true,
+  useEmulators: false,
 };
 export const WEB_APP_URL = 'http://localhost:4200';
