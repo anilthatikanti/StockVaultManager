@@ -1,9 +1,0 @@
-[build]
-  publish = "dist/angular-stock"  # Make sure this path matches your build output
-  command = "ng build"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = true
