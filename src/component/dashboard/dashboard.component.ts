@@ -131,14 +131,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   createChart() {
-    let chartDiv = document.getElementById('chart-container');
-
     const chartOptions = {
       height: this.innerHeight - 680,
       width: this.innerWidth - 300,
       layout: {
         textColor: 'black',
         background: { color: 'white' },
+      },
+      grid: {
+        vertLines: { visible: false },
+        horzLines: { visible: false },
       },
     };
     this.chart = createChart('chart-container', chartOptions);
