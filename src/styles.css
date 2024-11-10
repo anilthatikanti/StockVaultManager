@@ -8,6 +8,7 @@ body {
 }
 .p-menu {
   border: none;
+  width: 100%;
 }
 .active-route {
   font-weight: 700;
