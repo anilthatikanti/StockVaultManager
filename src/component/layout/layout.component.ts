@@ -226,32 +226,41 @@ export class LayoutComponent implements OnInit {
     }
   }
 
-  confirm2(event: Event) {
-    this.confirmationService.confirm({
-      target: event.target as EventTarget,
-      message: 'Do you want to logout?',
-      header: 'Logout Confirmation',
-      icon: 'pi pi-info-circle',
-      acceptButtonStyleClass: 'p-button-danger p-button-text',
-      rejectButtonStyleClass: 'p-button-text p-button-text',
-      acceptIcon: 'none',
-      rejectIcon: 'none',
+  // confirm2(event: Event) {
+  //   this.confirmationService.confirm({
+  //     target: event.target as EventTarget,
+  //     message: 'Do you want to logout?',
+  //     header: 'Logout Confirmation',
+  //     icon: 'pi pi-info-circle',
+  //     acceptButtonStyleClass: 'p-button-danger p-button-text',
+  //     rejectButtonStyleClass: 'p-button-text p-button-text',
+  //     acceptIcon: 'none',
+  //     rejectIcon: 'none',
 
-      accept: () => {
-        this.onClickBackToLogin();
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Logout success',
-          detail: 'Logout user',
-        });
-      },
-      reject: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Logout cancel',
-          detail: 'You have cancelled',
-        });
-      },
+  //     accept: () => {
+  //       this.onClickBackToLogin();
+  //       this.messageService.add({
+  //         severity: 'success',
+  //         summary: 'Logout success',
+  //         detail: 'Logout user',
+  //       });
+  //     },
+  //     reject: () => {
+  //       this.messageService.add({
+  //         severity: 'error',
+  //         summary: 'Logout cancel',
+  //         detail: 'You have cancelled',
+  //       });
+  //     },
+  //   });
+  // }
+
+  userLogoutEvent() {
+    this.onClickBackToLogin();
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Logout success',
+      detail: 'Logout user',
     });
   }
   getUserAvatarName(type?: string) {
