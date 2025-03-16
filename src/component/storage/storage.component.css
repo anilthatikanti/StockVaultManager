@@ -1,0 +1,5 @@
+::ng-deep p-selectbutton .p-button {
+    padding: 4px 10px;
+    font-size: 12px;
+    height: 34px;
+}

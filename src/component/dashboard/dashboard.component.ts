@@ -96,96 +96,97 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private http: HttpClient
   ) {
     this.onWindowResize();
-    this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
-      this.nifty200 = this.stockService.nifty200Data.filter((data: Stock) =>
-        data.trading_symbol.startsWith(value.trim().toUpperCase())
-      );
-    });
+    // this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
+    //   this.nifty200 = this.stockService.nifty200Data.filter((data: Stock) =>
+    //     data.trading_symbol.startsWith(value.trim().toUpperCase())
+    //   );
+    // });
   }
 
   async ngOnInit() {
     await this.stockService.loadNifty200Tokens();
-    this.nifty200 = this.stockService.nifty200Data;
-    this.selectedStock = this.stockService.nifty200Data[0];
-    let instrument_token = this.nifty200.map(
-      (data: Stock) => data.instrument_token
-    );
-    this.stockService.connect(instrument_token);
-    this.stockService.liveData.subscribe((data: LiveData) => {
-      let index = this.liveData.findIndex(
-        (stock) => stock.instrument_token === data.instrument_token
-      );
-      if (index === -1) {
-        this.liveData.push(data);
-      } else {
-        this.liveData[index] = data;
-      }
-      this.upDateChartData(data);
-    });
+    // this.nifty200 = this.stockService.nifty200Data;
+    // this.selectedStock = this.stockService.nifty200Data[0];
+    // let instrument_token = this.nifty200.map(
+    //   (data: Stock) => data.instrument_token
+    // );
+    // this.stockService.connect(instrument_token);
+    // this.stockService.liveData.subscribe((data: LiveData) => {
+    //   let index = this.liveData.findIndex(
+    //     (stock) => stock.instrument_token === data.instrument_token
+    //   );
+    //   if (index === -1) {
+    //     this.liveData.push(data);
+    //   } else {
+    //     this.liveData[index] = data;
+    //   }
+    //   this.upDateChartData(data);
+    // });
   }
 
   ngAfterViewInit(): void {
-    let data = this.calculateDateRange(this.chartTimeFrame);
-    this.displyChart();
-    this.createChart();
+    // let data = this.calculateDateRange(this.chartTimeFrame);
+    // this.displyChart();
+    // this.createChart();
   }
 
   createChart() {
-    const chartOptions = {
-      height: this.innerHeight - 680,
-      width: this.innerWidth - 300,
-      layout: {
-        textColor: 'black',
-        background: { color: 'white' },
-      },
-      grid: {
-        vertLines: { visible: false },
-        horzLines: { visible: false },
-      },
-    };
-    this.chart = createChart('chart-container', chartOptions);
-    this.ChartAreaSeries = this.chart.addAreaSeries({
-      lineColor: '#2962FF',
-      topColor: '#2962FF',
-      bottomColor: 'rgba(41, 98, 255, 0.28)',
-    });
-    console.log('this.innerHeight', this.innerHeight);
-    console.log(
-      'this.innerHeight - (this.innerHeight - 700)',
-      this.innerHeight / 2
-    );
+  //   const chartOptions = {
+  //     height: this.innerHeight - 680,
+  //     width: this.innerWidth - 300,
+  //     layout: {
+  //       textColor: 'black',
+  //       background: { color: 'white' },
+  //     },
+  //     grid: {
+  //       vertLines: { visible: false },
+  //       horzLines: { visible: false },
+  //     },
+  //   };
+  //   this.chart = createChart('chart-container', chartOptions);
+  //   this.ChartAreaSeries = this.chart.addAreaSeries({
+  //     lineColor: '#2962FF',
+  //     topColor: '#2962FF',
+  //     bottomColor: 'rgba(41, 98, 255, 0.28)',
+  //   });
+  //   console.log('this.innerHeight', this.innerHeight);
+  //   console.log(
+  //     'this.innerHeight - (this.innerHeight - 700)',
+  //     this.innerHeight / 2
+  //   );
   }
 
   getLiveItem(token: number, type?: string): number {
-    switch (type) {
-      case 'close':
-        return (
-          this.liveData.find((item: LiveData) => {
-            if (item.instrument_token === token) {
-              return item;
-            }
-            return '';
-          })?.ohlc.close ?? 0
-        );
-      case 'change':
-        return (
-          this.liveData.find((item: LiveData) => {
-            if (item.instrument_token === token) {
-              return item;
-            }
-            return '';
-          })?.change ?? 0
-        );
-      default:
-        return (
-          this.liveData.find((item: LiveData) => {
-            if (item.instrument_token === token) {
-              return item;
-            }
-            return '';
-          })?.last_price ?? 0
-        );
-    }
+  //   switch (type) {
+  //     case 'close':
+  //       return (
+  //         this.liveData.find((item: LiveData) => {
+  //           if (item.instrument_token === token) {
+  //             return item;
+  //           }
+  //           return '';
+  //         })?.ohlc.close ?? 0
+  //       );
+  //     case 'change':
+  //       return (
+  //         this.liveData.find((item: LiveData) => {
+  //           if (item.instrument_token === token) {
+  //             return item;
+  //           }
+  //           return '';
+  //         })?.change ?? 0
+  //       );
+  //     default:
+  //       return (
+  //         this.liveData.find((item: LiveData) => {
+  //           if (item.instrument_token === token) {
+  //             return item;
+  //           }
+  //           return '';
+  //         })?.last_price ?? 0
+  //       );
+  //   }
+  return 0
   }
 
   deleteWatchListItem(watchListItem: WatchList, stockItem: Stock) {
@@ -226,7 +227,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   searchStock(event: any) {
-    this.searchSubject.next(event.target.value);
+    // this.searchSubject.next(event.target.value);
   }
   getWatchListStocksCount() {
     return this.watchListData[this.activeTabViewIndex]?.stocks?.length ?? 0;
@@ -286,99 +287,101 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   selectingStock(stock: Stock) {
-    this.selectedStock = stock;
-    this.displyChart();
+    // this.selectedStock = stock;
+    // this.displyChart();
   }
 
   async displyChart() {
-    let dataObject = this.calculateDateRange(this.chartTimeFrame);
-    let historyData: HistoryData = await firstValueFrom(
-      this.http.get<HistoryData>(
-        `https://api.investit.ai/data/historical?instrument_token=${this.selectedStock.instrument_token}&interval=${this.chartTimeFrame}&from_date=${dataObject.startDate}&to_date=${dataObject.endDate}`
-      )
-    );
-    if (historyData.status) {
-      this.stockHistoryData = historyData.payload.map((item) => {
-        return {
-          time: (Date.parse(item.date) / 1000) as Time,
-          value: item.close,
-        };
-      });
-      this.selectedChartStatisticData =
-        historyData.payload[historyData.payload.length - 1];
-      this.ChartAreaSeries.setData(this.stockHistoryData);
-    }
-    console.log(
-      'this.selectedChartStatisticData',
-      this.selectedChartStatisticData
-    );
+    // let dataObject = this.calculateDateRange(this.chartTimeFrame);
+    // let historyData: HistoryData = await firstValueFrom(
+    //   this.http.get<HistoryData>(
+    //     `https://api.investit.ai/data/historical?instrument_token=${this.selectedStock.instrument_token}&interval=${this.chartTimeFrame}&from_date=${dataObject.startDate}&to_date=${dataObject.endDate}`
+    //   )
+    // );
+    // if (historyData.status) {
+    //   this.stockHistoryData = historyData.payload.map((item) => {
+    //     return {
+    //       time: (Date.parse(item.date) / 1000) as Time,
+    //       value: item.close,
+    //     };
+    //   });
+    //   this.selectedChartStatisticData =
+    //     historyData.payload[historyData.payload.length - 1];
+    //   this.ChartAreaSeries.setData(this.stockHistoryData);
+    // }
+    // console.log(
+    //   'this.selectedChartStatisticData',
+    //   this.selectedChartStatisticData
+    // );
   }
 
   calculateDateRange(interval: string): { startDate: string; endDate: string } {
-    const currentDate = new Date();
-    let startDate = new Date();
+    // const currentDate = new Date();
+    // let startDate = new Date();
 
-    switch (interval) {
-      case '60minute':
-        // Subtract 1 year
-        startDate.setFullYear(currentDate.getFullYear() - 1);
-        break;
-      case '30minute':
-        // Subtract 6 months
-        startDate.setMonth(currentDate.getMonth() - 6);
-        break;
-      case '15minute':
-        // Subtract 4 months
-        startDate.setMonth(currentDate.getMonth() - 4);
-        break;
-      case '5minute':
-        // Subtract 3 months
-        startDate.setMonth(currentDate.getMonth() - 3);
-        break;
-      default:
-        throw new Error('Invalid interval selected');
-    }
+    // switch (interval) {
+    //   case '60minute':
+    //     // Subtract 1 year
+    //     startDate.setFullYear(currentDate.getFullYear() - 1);
+    //     break;
+    //   case '30minute':
+    //     // Subtract 6 months
+    //     startDate.setMonth(currentDate.getMonth() - 6);
+    //     break;
+    //   case '15minute':
+    //     // Subtract 4 months
+    //     startDate.setMonth(currentDate.getMonth() - 4);
+    //     break;
+    //   case '5minute':
+    //     // Subtract 3 months
+    //     startDate.setMonth(currentDate.getMonth() - 3);
+    //     break;
+    //   default:
+    //     throw new Error('Invalid interval selected');
+    //   }
 
-    return {
-      startDate: new Date(startDate).toLocaleString('sv', {
-        timeZone: 'Asia/Kolkata',
-      }),
-      endDate: new Date(currentDate).toLocaleString('sv', {
-        timeZone: 'Asia/Kolkata',
-      }),
-    };
-  }
+    //   return {
+    //     startDate: new Date(startDate).toLocaleString('sv', {
+    //       timeZone: 'Asia/Kolkata',
+    //     }),
+    //     endDate: new Date(currentDate).toLocaleString('sv', {
+    //       timeZone: 'Asia/Kolkata',
+    //     }),
+    //   };
+    return {startDate: new Date().toISOString(), endDate: new Date().toISOString()};}
+  
   upDateChartData(data: LiveData) {
-    if (this.selectedStock.instrument_token === data.instrument_token) {
-      let lastTimer = new Date(this.selectedChartStatisticData.date);
+  //   if (this.selectedStock.instrument_token === data.instrument_token) {
+  //     let lastTimer = new Date(this.selectedChartStatisticData.date);
 
-      let add5Time = lastTimer.setMinutes(
-        new Date(this.selectedChartStatisticData.date).getMinutes() + 5
-      );
+  //     let add5Time = lastTimer.setMinutes(
+  //       new Date(this.selectedChartStatisticData.date).getMinutes() + 5
+  //     );
 
-      let add5TimeConvertToAsia = new Date(add5Time).toLocaleString('sv', {
-        timeZone: 'Asia/Kolkata',
-      });
-      const now = new Date();
-      const isWithinRestrictedTime =
-        (now.getHours() >= 15 && now.getMinutes() >= 30) ||
-        (now.getHours() < 9 && now.getMinutes() > 15);
+  //     let add5TimeConvertToAsia = new Date(add5Time).toLocaleString('sv', {
+  //       timeZone: 'Asia/Kolkata',
+  //     });
+  //     const now = new Date();
+  //     const isWithinRestrictedTime =
+  //       (now.getHours() >= 15 && now.getMinutes() >= 30) ||
+  //       (now.getHours() < 9 && now.getMinutes() > 15);
 
-      if (
-        new Date().getTime() > new Date(add5Time).getTime() &&
-        isWithinRestrictedTime
-      ) {
-        let object: { time: Time; value: number } = {
-          time: (Date.parse(add5TimeConvertToAsia) / 1000) as Time,
-          value: data.last_price,
-        };
-        this.selectedChartStatisticData.date = add5TimeConvertToAsia;
-        this.stockHistoryData.push(object);
-      } else {
-        this.stockHistoryData[this.stockHistoryData.length - 1].value =
-          data.last_price;
-      }
-      this.ChartAreaSeries.setData(this.stockHistoryData);
-    }
+  //     if (
+  //       new Date().getTime() > new Date(add5Time).getTime() &&
+  //       isWithinRestrictedTime
+  //     ) {
+  //       let object: { time: Time; value: number } = {
+  //         time: (Date.parse(add5TimeConvertToAsia) / 1000) as Time,
+  //         value: data.last_price,
+  //       };
+  //       this.selectedChartStatisticData.date = add5TimeConvertToAsia;
+  //       this.stockHistoryData.push(object);
+  //     } else {
+  //       this.stockHistoryData[this.stockHistoryData.length - 1].value =
+  //         data.last_price;
+  //     }
+  //     this.ChartAreaSeries.setData(this.stockHistoryData);
+  //   }
   }
 }
+

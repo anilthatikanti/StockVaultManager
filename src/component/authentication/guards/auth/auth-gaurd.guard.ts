@@ -1,7 +1,8 @@
 import { inject } from '@angular/core';
-import { Auth } from '@angular/fire/auth';
+import { Auth, authState } from '@angular/fire/auth';
 import { CanActivateFn, Router } from '@angular/router';
 import { ToastService } from '../../../../shared/services/toastService/toast.service';
+import { firstValueFrom } from 'rxjs';
 
 export const authGuard: CanActivateFn = (route, state) => {
   const firebaseAuth = inject(Auth);
@@ -10,6 +11,7 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   return new Promise((resolve, reject) => {
     firebaseAuth.onAuthStateChanged(async (user) => {
+      console.log('user', user)
       if (user) {
         if (user.emailVerified) {
           if (state.url.includes('/auth/verify-email')) {

@@ -9,6 +9,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { WEB_APP_URL } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { ToastService } from '../../../shared/services/toastService/toast.service';
+import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-verify-email',
@@ -28,14 +29,14 @@ export class VerifyEmailComponent implements OnInit {
   isResendButtonDisabled: boolean = true;
   timer: number = 60;
   timerId!: any;
-
+  emailVerified: boolean = false;
   emailVerificationFailureMessage: string = '';
 
   constructor(
     private firebaseAuth: Auth,
     private activatedRoute: ActivatedRoute,
     private router: Router,
-
+    private http: HttpClient,
     private toast: ToastService
   ) {}
 
@@ -46,6 +47,7 @@ export class VerifyEmailComponent implements OnInit {
       this.apiKey = params['apiKey'];
       this.continueUrl = params['continueUrl'] ?? WEB_APP_URL;
     });
+
     this.emailVerifyComponentInit();
   }
 
@@ -78,6 +80,11 @@ export class VerifyEmailComponent implements OnInit {
           user.reload();
           if (user.emailVerified) {
             clearInterval(interval);
+            const data = await firstValueFrom(
+              this.http.post('http://localhost:3000/user/create-user', { email: user.email })
+            );
+
+            console.log('data', data);
             window.location.href = `${this.router.url ?? WEB_APP_URL}`;
           }
         }
@@ -90,7 +97,7 @@ export class VerifyEmailComponent implements OnInit {
   async applyVerificationCode() {
     try {
       await applyActionCode(this.firebaseAuth, this.oobCode);
-      window.location.href = `${this.continueUrl}`;
+      this.mode = 'emailVerifySuccess';
     } catch (error: any) {
       console.log('verifyEmail: [ERR] ', error);
       if (error.code == 'auth/invalid-action-code') {
@@ -117,7 +124,7 @@ export class VerifyEmailComponent implements OnInit {
     if (isEmailSent) {
       this.startTimer();
     } else {
-      // await logoutUser(this.firebaseAuth);
+      await logoutUser(this.firebaseAuth);
     }
   }
 
@@ -137,5 +144,6 @@ export class VerifyEmailComponent implements OnInit {
 
   onClickBackToLogin() {
     logoutUser(this.firebaseAuth, false);
+    this.router.navigate(['/auth/login']);
   }
 }

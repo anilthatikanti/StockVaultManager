@@ -1,1 +1,279 @@
-<p>storage works!</p>
+<p-toast />
+
+@defer (when !tableLoading) {
+<div class="h-full flex flex-column gap-3">
+  <div class="flex gap-2 align-items-center">
+    @if(currentFolder?.parentFolderId){
+
+    <i
+      (click)="BackToParent(currentFolder)"
+      class="pi pi-arrow-left text-primary m-0 font-medium"
+      style="font-size: 15px; cursor: pointer"
+    ></i>
+    }
+    <h3 class="text-primary m-0 font-medium">{{ currentFolder?.name }}</h3>
+  </div>
+
+  @if(tableData.length > 0||searchValue){
+  <div class="w-full h-full flex flex-column gap-3">
+    <div class="flex flex-row justify-content-between align-items-center">
+      <div class="flex align-items-center gap-2">
+        <input
+          class="text-bluegray-400 text-xs"
+          type="text"
+          #search
+          [value]="searchValue"
+          (keyup)="searchFn(search.value)"
+          [style]="{
+            height: '34px',
+            padding: '8px',
+            color: '#667085',
+            'font-weight': 500
+          }"
+          pInputText
+          placeholder="Search folder..."
+        />
+
+        <p-selectButton
+          [options]="stateOptions"
+          [(ngModel)]="GlobalSearch"
+          optionLabel="label"
+          optionValue="value"
+          (ngModelChange)="selectSearchFromFn()"
+        />
+      </div>
+      <div class="flex gap-2">
+        <p-fileUpload
+        #fu
+          mode="basic"
+          [style]="{ width: '100%', padding: '7px', 'font-size': '12px' }"
+          chooseLabel="File"
+          uploadIcon="pi pi-spin pi-spinner"
+          uploadLabel="Uploading"
+          [disabled]="uploadFileBtnLoading"
+          chooseIcon="pi pi-file-arrow-up"
+          accept="image/*"
+          (onSelect)="uploadFile($event,fu)"
+          />
+         
+
+        <p-button
+          class="w-fit text-xs"
+          type="button"
+          [loading]="createFolderBtnLoading"
+          [disabled]="createFolderBtnLoading"
+          (click)="createFolderModelOpen = true"
+          [style]="{ width: '100%', padding: '7px', 'font-size': '12px' }"
+          [label]="innerHeight > 768 ? 'Folder' : ''"
+          icon="pi pi-folder-plus"
+        />
+      </div>
+    </div>
+    @if(tableData.length){
+    <p-table [value]="tableData" loadingIcon="pi pi-spin pi-spinner" [loading]="tableLoading">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Create</th>
+          <th>Update</th>
+          <th>Size</th>
+          <th>Actions</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowData>
+        <tr>
+          <td>
+            <i
+              [class]="rowData?.file ? 'pi pi-file' : 'pi pi-folder'"
+              style="font-size: 100%"
+            ></i>
+          </td>
+          <td
+            style="cursor: pointer"
+            (click)="
+              rowData?.file ? (image = rowData) : routeToNewFolder(rowData)
+            "
+          >
+            {{ rowData?.file ? rowData.file.fileName : rowData.name }}
+          </td>
+          <td>{{ rowData?.file ? "File" : "Folder" }}</td>
+          <td>
+            {{
+              rowData?.file
+                ? rowData.uploadedAt
+                : (rowData.createdAt | date : "medium")
+            }}
+          </td>
+          <td>{{ rowData.updatedAt | date : "medium" }}</td>
+          <td>
+            {{ rowData.file ? formatBytes(rowData.file.size) : (rowData.count ?? 0) + " Items" }}
+          </td>
+          <td>
+            <div class="flex gap-3 align-items-center">
+              <i
+                pTooltip="Edit"
+                class="pi pi-pencil"
+                style="font-size: 90%; cursor: pointer"
+                (click)=" openEditModelFn(rowData)"
+              ></i>
+              <i
+                pTooltip="Copy"
+                class="pi pi-copy"
+                style="font-size: 100%; cursor: pointer"
+                (click)="copy(rowData)"
+              ></i>
+              <i
+                pTooltip="Move"
+                class="pi pi-file-import"
+                style="font-size: 100%; cursor: pointer"
+                (click)="(moveItem = rowData)"
+              ></i>
+              <i
+                pTooltip="Delete"
+                class="pi pi-trash"
+                style="font-size: 100%; color: #f95557"
+                (click)="rowData?.file ? deleteFileFn(rowData) : deleteFolderFn(rowData)"
+              ></i>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+    }@else {
+    <div class="w-full h-full flex justify-content-center align-items-center">
+      <div class="text-center flex flex-column gap-2">
+        <img
+          src="assets/images/illustrations/no_data.svg"
+          alt="NO DATA"
+          width="100%"
+        />
+        <h3>No Results Found</h3>
+        <p class="text-gray-500">Try a different search term.</p>
+      </div>
+    </div>
+    }
+  </div>
+
+  }@else{
+  <div class="w-full h-full flex justify-content-center align-items-center">
+    <div class="text-center flex flex-column gap-2">
+      <img
+        src="assets/images/illustrations/no_data.svg"
+        alt="NO DATA"
+        width="100%"
+      />
+      <h3>No Folders Found</h3>
+      <p class="text-gray-500">
+        Start by creating a new folder or uploading files.
+      </p>
+      <div class="flex justify-content-center align-items-center gap-2">
+        <p-fileUpload
+        #fu
+          mode="basic"
+          [style]="{ width: '100%', padding: '7px', 'font-size': '12px' }"
+          chooseLabel="File"
+          uploadIcon="pi pi-spin pi-spinner"
+          uploadLabel="Uploading"
+          [disabled]="uploadFileBtnLoading"
+          chooseIcon="pi pi-file-arrow-up"
+          accept="image/*"
+          (onSelect)="uploadFile($event,fu)"
+          />
+        <p-button
+          class="w-fit text-xs"
+          type="button"
+          (click)="createFolderModelOpen = true"
+          [style]="{ width: '100%', padding: '7px', 'font-size': '12px' }"
+          [label]="innerHeight > 768 ? 'Folder' : ''"
+          icon="pi pi-folder-plus"
+        />
+      </div>
+    </div>
+  </div>
+  }
+</div>
+}@placeholder{
+<div class="w-full h-full flex justify-content-center align-items-center">
+  <p-progressSpinner ariaLabel="loading" />
+</div>
+} @error {
+<p>Failed to load large component.</p>
+} @if(moveItem?._id) {
+<app-move-folder-file
+  [moveItem]="moveItem"
+  [currentFolder]="currentFolder"
+  (closeEvent)="moveItem = null"
+  (responseEvent)="moveFileFolderFn()"
+></app-move-folder-file>
+}
+<p-dialog
+  header="Create Folder"
+  [modal]="true"
+  [visible]="createFolderModelOpen"
+  [style]="{ width: '25rem' }"
+  closable="false"
+>
+  <form
+    [formGroup]="editForm"
+    (ngSubmit)="editItem?._id ? updateFolderFn() : createFolder()"
+    class="flex flex-column justify-between gap-4 mb-1"
+  >
+    <div class="flex items-center gap-4 mb-1">
+      <label for="folderName" class="font-semibold w-24 text-center"
+        >Folder name</label
+      >
+      <input
+        pInputText
+        id="folderName"
+        formControlName="name"
+        class="text-bluegray-400 text-xs"
+        type="text"
+        autocomplete="off"
+        [style]="{
+          height: '34px',
+          padding: '8px',
+          color: '#667085',
+          'font-weight': 500
+        }"
+        placeholder="Enter Folder Name"
+      />
+    </div>
+
+    <!-- Error message -->
+    <div
+      *ngIf="Form.invalid && (Form.dirty || Form.touched)"
+      class="text-red-500 text-sm"
+    >
+      <span *ngIf="Form.errors?.['required']">Folder name is required.</span>
+    </div>
+
+    <div class="flex justify-content-end gap-2">
+      <p-button
+        label="Cancel"
+        severity="secondary"
+        (click)="createFolderModelOpen = false"
+      />
+      <p-button label="Save" type="submit" [disabled]="Form.invalid" />
+    </div>
+  </form>
+</p-dialog>
+
+<p-dialog
+  [header]="image?.file?.fileName"
+  [modal]="true"
+  [visible]="!!image?._id"
+  [style]="{ width: 'fit-content', height: 'fit-content' }"
+>
+  @if(image){
+  <img
+    [src]="image?.fileUrl"
+    alt="Folder Image"
+    style="height: 50vh; width: 50vw;object-fit: contain;"
+  />
+  }
+  <div class="flex justify-content-end mt-2 sticky bottom-0 right-0">
+    <p-button label="Cancel" severity="secondary" (click)="image = ''" />
+  </div>
+</p-dialog>

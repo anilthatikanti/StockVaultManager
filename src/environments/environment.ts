@@ -12,3 +12,4 @@ export const environment = {
   useEmulators: false,
 };
 export const WEB_APP_URL = 'http://localhost:4200';
+export const SERVER_URL = 'http://localhost:3000';

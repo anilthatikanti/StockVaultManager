@@ -15,11 +15,12 @@ import { PasswordModule } from 'primeng/password';
 import {
   Auth,
   getAuth,
-  GoogleAuthProvider,
-  OAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup,
+  GoogleAuthProvider,
+  OAuthProvider,
 } from '@angular/fire/auth';
+
 import { ToastService } from '../../../shared/services/toastService/toast.service';
 import { firebaseErrorMessages } from '../functions/authentication.function';
 @Component({

@@ -4,7 +4,7 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { DividerModule } from 'primeng/divider';
 import { ConfirmPopupModule } from 'primeng/confirmpopup';
 import { ToastModule } from 'primeng/toast';
@@ -36,6 +36,7 @@ import {
 } from '@angular/forms';
 import { passwordPattern } from '../../shared/validation/form.validation';
 import { ToastService } from '../../shared/services/toastService/toast.service';
+import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-layout',
   standalone: true,
@@ -51,6 +52,7 @@ import { ToastService } from '../../shared/services/toastService/toast.service';
     DialogModule,
     PasswordModule,
     ReactiveFormsModule,
+    CommonModule,
   ],
   providers: [ConfirmationService, MessageService],
   templateUrl: './layout.component.html',
@@ -71,12 +73,12 @@ export class LayoutComponent implements OnInit {
     {
       label: 'Storage',
       icon: 'pi pi-database',
-      routerLink: '/storage',
+      routerLink: '/storage/64e4a5f7c25e4b0a2c9d1234',
     },
     {
-      label: 'Support',
-      icon: 'pi pi-headphones',
-      routerLink: '/support',
+      label: 'Bin',
+      icon: 'pi pi-trash',
+  routerLink:'/bin/64e4a5f7c25e4b0a2c9d5678'
     },
     {
       label: 'Settings',
@@ -92,7 +94,8 @@ export class LayoutComponent implements OnInit {
     private confirmationService: ConfirmationService,
     private messageService: MessageService,
     private firebaseAuth: Auth,
-    private toast: ToastService
+    private toast: ToastService,
+    private router: Router
   ) {
     let formBuilder: FormBuilder = new FormBuilder();
     this.changePasswordForm = formBuilder.group({
@@ -226,35 +229,6 @@ export class LayoutComponent implements OnInit {
     }
   }
 
-  // confirm2(event: Event) {
-  //   this.confirmationService.confirm({
-  //     target: event.target as EventTarget,
-  //     message: 'Do you want to logout?',
-  //     header: 'Logout Confirmation',
-  //     icon: 'pi pi-info-circle',
-  //     acceptButtonStyleClass: 'p-button-danger p-button-text',
-  //     rejectButtonStyleClass: 'p-button-text p-button-text',
-  //     acceptIcon: 'none',
-  //     rejectIcon: 'none',
-
-  //     accept: () => {
-  //       this.onClickBackToLogin();
-  //       this.messageService.add({
-  //         severity: 'success',
-  //         summary: 'Logout success',
-  //         detail: 'Logout user',
-  //       });
-  //     },
-  //     reject: () => {
-  //       this.messageService.add({
-  //         severity: 'error',
-  //         summary: 'Logout cancel',
-  //         detail: 'You have cancelled',
-  //       });
-  //     },
-  //   });
-  // }
-
   userLogoutEvent() {
     this.onClickBackToLogin();
     this.messageService.add({
@@ -274,5 +248,11 @@ export class LayoutComponent implements OnInit {
   }
   onClickBackToLogin() {
     logoutUser(this.firebaseAuth, false);
+  }
+
+  isLinkActive(routerLink: string): boolean {
+    const currentUrl = this.router.url;
+    const parts = routerLink.split('/');
+    return currentUrl.startsWith(parts[0]+'/'+parts[1]);
   }
 }
