@@ -2,15 +2,16 @@
 
 <div class="h-full flex flex-column gap-3">
   <h3 class="text-primary m-0 font-medium">Welcome to Finance Books!</h3>
-  <div>
+  <div class=" w-full h-full">
     <p-card
-      class="w-full flex-shrink-0"
+      
       [style]="{
-        height: innerHeight - 500 + 'px',
+      height: '100%',
         overflow: 'hidden',
         border: ' solid 1px #e6e9ed',
         'box-shadow': 'unset'
       }"
+      class="w-full grow-1"
     >
       <ng-template pTemplate="header">
         <div class="h-full">
@@ -87,22 +88,18 @@
       <div id="chart-container"></div>
     </p-card>
   </div>
-
   <div
-    class="flex gap-3 w-full flex-grow-1"
-    [style]="{
-      height: innerHeight - 670 + 'px'
-    }"
+    class="flex gap-3 w-full h-1/4 "
+   
   >
     <p-card
-      [style]="{
-        height: innerHeight - 585 + 'px',
-        'min-height': '310px',
-        overflow: 'hidden',
-        border: ' solid 1px #e6e9ed',
-        'box-shadow': 'unset'
-      }"
-      class="w-full"
+    [style]="{
+      height: '100%',
+      overflow: 'hidden',
+      border: ' solid 1px #e6e9ed',
+      'box-shadow': 'unset'
+    }"
+    class="w-full grow-none"
     >
       <ng-template pTemplate="header">
         <div class="h-full">
@@ -229,7 +226,7 @@
         border: ' solid 1px #e6e9ed',
         'box-shadow': 'unset'
       }"
-      class="w-full flex-grow-1"
+      class="w-full grow-none"
     >
       <ng-template pTemplate="header">
         <div class="h-full">
@@ -317,7 +314,7 @@
             }
           </p-tabPanel>
 
-          <!--Edit watchlist Dialog boxes -->
+  
           <p-dialog
             header="Edit watchlist name"
             [modal]="true"
@@ -360,7 +357,7 @@
         </p-tabView>
       </ng-template>
     </p-card>
-  </div>
+  </div> 
 </div>
 <!-- Dialog boxes -->
 <p-dialog

@@ -12,7 +12,7 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'storage',
+    path: 'storage/:id',
     loadComponent: () =>
       import('../storage/storage.component').then((m) => m.StorageComponent),
   },
@@ -24,9 +24,9 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'support',
+    path: 'bin/:id',
     loadComponent: () =>
-      import('../support/support.component').then((m) => m.SupportComponent),
+      import('../bin/bin.component').then((m) => m.BinComponent),
   },
   {
     path: 'settings',

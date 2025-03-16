@@ -28,7 +28,7 @@
             <a
               pRipple
               class="flex align-items-center p-menuitem-link mb-2"
-              routerLinkActive="active-route"
+              [ngClass]="{'active-route': isLinkActive(item.routerLink)}"
               [routerLink]="item.routerLink"
             >
               <span [class]="item.icon"></span>

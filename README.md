@@ -25,3 +25,25 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 ## Further help
 
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## llustrators are taking from https://www.freepik.com/vectors/illustrations
+
+# Project Environment setup Documentation
+```
+export const environment = {
+  firebaseConfig: {
+    apiKey: '********************',
+    authDomain: '******************************',
+    projectId: '*************************',
+    storageBucket: '***********************',
+    messagingSenderId: '*******************',
+    appId: '********************************',
+    measurementId: '***********************',
+  },
+  production: true,
+  useEmulators: false,
+};
+export const WEB_APP_URL = 'http://localhost:4200';
+export const SERVER_URL = 'http://localhost:3000';
+
+```
+this configuration is required to run the application

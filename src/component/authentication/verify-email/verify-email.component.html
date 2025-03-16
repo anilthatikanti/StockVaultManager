@@ -70,6 +70,31 @@
       />
     </div>
 
+    }@else if(mode === 'emailVerifySuccess'){
+      <div>
+        <div class="text-center">
+          <img
+            src="assets/images/illustrations/email_verified.svg"
+            alt="password changed"
+            class="mb-2"
+            width="220"
+          />
+          <h4 class="proxima-30 mb-3">Email Verified</h4>
+          <p class="proxima-16">
+            Your email has been verified successfully. Click 'Continue' to proceed to the login page
+          </p>
+        </div>
+        <div class="flex align-items-center justify-content-center mt-5">
+          <i class="pi pi-arrow-left mr-2 brass-600 text-sm"></i>
+          <p-button
+            label="Continue"
+            [link]="true"
+            type="button"
+            [style]="{ color: '#3b82f5' }"
+            (click)="onClickBackToLogin()"
+          />
+        </div>
+      </div>
     }
   </div>
 </div>
