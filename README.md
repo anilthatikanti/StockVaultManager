@@ -27,7 +27,8 @@ Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To u
 To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
 ## llustrators are taking from https://www.freepik.com/vectors/illustrations
 
-# Project Environment setup Documentation
+# Project Environment setup Documentation 
+##### path: src/environments/environment.ts
 ```
 export const environment = {
   firebaseConfig: {
