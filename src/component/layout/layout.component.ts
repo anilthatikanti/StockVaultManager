@@ -65,11 +65,11 @@ export class LayoutComponent implements OnInit {
       icon: 'pi pi-home',
       routerLink: '/dashboard',
     },
-    {
-      label: 'Performance',
-      icon: 'pi pi-chart-line',
-      routerLink: '/performance',
-    },
+    // {
+    //   label: 'Performance',
+    //   icon: 'pi pi-chart-line',
+    //   routerLink: '/performance',
+    // },
     {
       label: 'Storage',
       icon: 'pi pi-database',
@@ -80,11 +80,11 @@ export class LayoutComponent implements OnInit {
       icon: 'pi pi-trash',
   routerLink:'/bin/64e4a5f7c25e4b0a2c9d5678'
     },
-    {
-      label: 'Settings',
-      icon: 'pi pi-cog',
-      routerLink: '/settings',
-    },
+    // {
+    //   label: 'Settings',
+    //   icon: 'pi pi-cog',
+    //   routerLink: '/settings',
+    // },
   ];
 
   changePassword: boolean = false;
