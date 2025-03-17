@@ -17,11 +17,11 @@
         <div class="h-full">
           <div class="p-3" [style]="{ 'background-color': '#f2f4f7' }">
             <h5 class="text-lg font-medium">
-              {{ selectedStock.trading_symbol }}
+              {{ selectedStock.symbol}}
             </h5>
           </div>
           <div class="p-3 flex justify-content-between">
-            <div class="flex flex-column justify-content-center">
+            <!-- <div class="flex flex-column justify-content-center">
               <h2 class="font-medium text-3xl">
                 {{
                   getLiveItem(selectedStock.instrument_token, "current")
@@ -52,32 +52,32 @@
                   )
                 }}%
               </p>
-            </div>
+            </div> -->
             @if(selectedChartStatisticData){
 
             <div class="flex gap-4">
               <div>
                 <p class="font-sm" [style]="{ color: '#a4acba' }">Open</p>
                 <p class="font-semibold">
-                  {{ selectedChartStatisticData.open.toFixed(2) }}
+                  {{ selectedChartStatisticData.Open.toFixed(2) }}
                 </p>
               </div>
               <div>
                 <p class="font-sm" [style]="{ color: '#a4acba' }">Close</p>
                 <p class="font-semibold">
-                  {{ selectedChartStatisticData.close.toFixed(2) }}
+                  {{ selectedChartStatisticData.Close.toFixed(2) }}
                 </p>
               </div>
               <div>
                 <p class="font-sm" [style]="{ color: '#a4acba' }">Low</p>
                 <p class="font-semibold">
-                  {{ selectedChartStatisticData.low.toFixed(2) }}
+                  {{ selectedChartStatisticData.Low.toFixed(2) }}
                 </p>
               </div>
               <div>
                 <p class="font-sm" [style]="{ color: '#a4acba' }">High</p>
                 <p class="font-semibold">
-                  {{ selectedChartStatisticData.high.toFixed(2) }}
+                  {{ selectedChartStatisticData.High.toFixed(2) }}
                 </p>
               </div>
             </div>
@@ -177,35 +177,35 @@
                 class="text-sm font-normal cursor-pointer"
                 (click)="selectingStock(item)"
               >
-                {{ item.trading_symbol }}
+                {{ item.symbol }}
               </p>
             </div>
             <div class="flex flex-column align-items-end">
               <p>
                 {{
-                  getLiveItem(item.instrument_token, "current")
-                    ? getLiveItem(item.instrument_token, "current")
+                  getLiveItem(item.symbol, "current")
+                    ? getLiveItem(item.symbol)
                     : "-"
                 }}
               </p>
               <div
                 class="flex text-xs"
                 [ngStyle]="
-                  getLiveItem(item.instrument_token, 'change') < 0
+                  getLiveItem(item.symbol, 'change') < 0
                     ? { color: 'red' }
                     : { color: 'green' }
                 "
               >
                 <span class="mr-2">{{
                   (
-                    getLiveItem(item.instrument_token, "current") -
-                    getLiveItem(item.instrument_token, "close")
+                    getLiveItem(item.symbol, "current") -
+                    getLiveItem(item.symbol, "close")
                   ).toFixed(2)
                 }}</span>
 
                 (<span
                   >{{
-                    getLiveItem(item.instrument_token, "change").toFixed(2)
+                    getLiveItem(item.symbol, "change")?.toFixed(2)
                   }}%</span
                 >)
               </div>
@@ -283,29 +283,29 @@
               <div class="flex flex-column align-items-end">
                 <p>
                   {{
-                    getLiveItem(stock.instrument_token, "current")
-                      ? getLiveItem(stock.instrument_token, "current")
+                    getLiveItem(stock.symbol,"current")
+                      ? getLiveItem(stock.symbol,"current")
                       : "-"
                   }}
                 </p>
                 <div
                   class="flex text-xs"
                   [ngStyle]="
-                    getLiveItem(stock.instrument_token, 'change') < 0
+                    getLiveItem(stock.symbol, 'change') < 0
                       ? { color: 'red' }
                       : { color: 'green' }
                   "
                 >
                   <span class="mr-2">{{
                     (
-                      getLiveItem(stock.instrument_token, "current") -
-                      getLiveItem(stock.instrument_token, "close")
+                      getLiveItem(stock.symbol, "current") -
+                      getLiveItem(stock.symbol, "close")
                     ).toFixed(2)
                   }}</span>
 
                   (<span
                     >{{
-                      getLiveItem(stock.instrument_token, "change").toFixed(2)
+                      getLiveItem(stock.symbol, "change").toFixed(2)
                     }}%</span
                   >)
                 </div>

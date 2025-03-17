@@ -1,25 +1,27 @@
-import { Stock } from './stock.interface';
+import { IStockData } from './stock.interface';
 
 export type ApiResponse = {
   message: string;
-  payload: Stock[];
+  payload: IStockData[];
   status: boolean;
 };
 
 export type HistoryData = {
   message: string;
-  payload: History[];
+  payload: IHistoryData[];
   status: boolean;
 };
 
-export type History = {
-  close: number;
-  date: string;
-  high: number;
-  low: number;
-  open: number;
-  volume: number;
-};
+export interface IHistoryData{
+  Datetime:string;
+  Open: number;
+  High: number;
+  Low: number;
+  Close: number;
+  Volume: number;
+  Dividends: number;
+  "Stock Splits": number;
+}
 
 export interface Response {
   success:boolean;
