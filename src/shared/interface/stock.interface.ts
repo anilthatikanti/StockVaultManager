@@ -8,22 +8,40 @@ export interface Stock {
   trading_symbol: string;
 }
 
-export interface LiveData {
-  change: number;
-  instrument_token: number;
-  last_price: number;
-  mode: string;
-  ohlc: Ohlc;
-  close: number;
-  high: number;
-  low: number;
-  open: number;
-  tradable: boolean;
+export interface IStockData {
+  symbol: string;
+  name: string;
+  current_price: number;
+  market_cap: number;
+  sector: string;
+  industry: string;
+  ohlc:{
+    Open: number;
+    High: number;
+    Low: number;
+    Close: number;
+    Volume: number;
+  };
 }
 
-interface Ohlc {
-  open: number;
-  high: number;
-  low: number;
-  close: number;
+export interface IHistoryData{
+    Open: number;
+    High: number;
+    Low: number;
+    Close: number;
+    Volume: number;
+    Dividends: number;
+    "Stock Splits": number;
+}
+export interface ITickerData {
+  id: string;
+  exchange: string;
+  quoteType: number;
+  price: number;
+  timestamp: number;
+  marketHours: number;
+  changePercent: number;
+  dayVolume: number;
+  change: number;
+  priceHint: number;
 }

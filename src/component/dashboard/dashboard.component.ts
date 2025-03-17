@@ -8,7 +8,10 @@ import {
   watchListData,
 } from '../../shared/services/stock.service';
 import { FormsModule } from '@angular/forms';
-import { LiveData, Stock } from '../../shared/interface/stock.interface';
+import {
+  IStockData,
+  ITickerData,
+} from '../../shared/interface/stock.interface';
 import { GetStockNamePipe } from '../../shared/pips/get-stock-name.pipe';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
@@ -22,7 +25,7 @@ import { DialogModule } from 'primeng/dialog';
 import { createChart, Time } from 'lightweight-charts';
 import { HttpClient } from '@angular/common/http';
 import {
-  History,
+  IHistoryData,
   HistoryData,
 } from '../../shared/interface/response.interface';
 @Component({
@@ -48,8 +51,8 @@ import {
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-  nifty200: Stock[] = [];
-  liveData: LiveData[] = [];
+  nifty200: IStockData[] = [];
+  liveData: ITickerData[] = [];
   innerHeight: number = window.innerHeight;
   innerWidth: number = window.innerWidth;
   watchListData: WatchList[] = watchListData;
@@ -59,19 +62,25 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   editWatchList!: WatchList | undefined;
   createWatchListDialogVisible: boolean = false;
   createWatchListName: string = '';
-  selectedStock: Stock = {
-    exchange: 'NSE',
-    exchange_token: 13,
-    instrument_token: 3329,
-    instrument_type: 'EQ',
-    name: 'ABB INDIA',
-    segment: '',
-    trading_symbol: 'ABB',
-  };
+  selectedStock: IStockData =  {
+    "symbol": "RELIANCE.NS",
+    "name": "RELIANCE INDUSTRIES LTD",
+    "current_price": 1238.85,
+    "market_cap": 16764613165056,
+    "sector": "Energy",
+    "industry": "Oil & Gas Refining & Marketing",
+    "ohlc": {
+        "Open": 1242.1500244140625,
+        "High": 1257.4000244140625,
+        "Low": 1233.0999755859375,
+        "Close": 1238.8499755859375,
+        "Volume": 16635512.0
+    }
+}
   chartTimeFrame = '5minute';
   ChartAreaSeries!: any;
   chart: any;
-  selectedChartStatisticData!: History;
+  selectedChartStatisticData!: IHistoryData;
   stockHistoryData!: { time: Time; value: number }[];
 
   watchList: any[] = [];
@@ -96,106 +105,96 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private http: HttpClient
   ) {
     this.onWindowResize();
-    // this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
-    //   this.nifty200 = this.stockService.nifty200Data.filter((data: Stock) =>
-    //     data.trading_symbol.startsWith(value.trim().toUpperCase())
-    //   );
-    // });
+    this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
+      this.nifty200 = this.stockService.nifty200Data.filter(
+        (data: IStockData) => data.name.startsWith(value.trim().toUpperCase())
+      );
+    });
   }
 
   async ngOnInit() {
     await this.stockService.loadNifty200Tokens();
-    // this.nifty200 = this.stockService.nifty200Data;
-    // this.selectedStock = this.stockService.nifty200Data[0];
-    // let instrument_token = this.nifty200.map(
-    //   (data: Stock) => data.instrument_token
-    // );
-    // this.stockService.connect(instrument_token);
-    // this.stockService.liveData.subscribe((data: LiveData) => {
-    //   let index = this.liveData.findIndex(
-    //     (stock) => stock.instrument_token === data.instrument_token
-    //   );
-    //   if (index === -1) {
-    //     this.liveData.push(data);
-    //   } else {
-    //     this.liveData[index] = data;
-    //   }
-    //   this.upDateChartData(data);
-    // });
+    this.nifty200 = this.stockService.nifty200Data;
+    this.selectedStock = this.stockService.nifty200Data[0];
+    let symbols = this.nifty200.map((data: IStockData) => data.symbol);
+    this.stockService.connect(symbols);
+    this.stockService.liveData.subscribe((data: ITickerData) => {
+      console.log('data', data)
+      let index = this.liveData.findIndex((stock) => stock.id === data.id);
+      if (index === -1) {
+        this.liveData.push(data);
+      } else {
+        this.liveData[index] = data;
+      }
+      this.upDateChartData(data);
+    });
   }
 
   ngAfterViewInit(): void {
-    // let data = this.calculateDateRange(this.chartTimeFrame);
-    // this.displyChart();
-    // this.createChart();
+    let data = this.calculateDateRange(this.chartTimeFrame);
+    this.displayChart();
+    this.createChart();
   }
 
   createChart() {
-  //   const chartOptions = {
-  //     height: this.innerHeight - 680,
-  //     width: this.innerWidth - 300,
-  //     layout: {
-  //       textColor: 'black',
-  //       background: { color: 'white' },
-  //     },
-  //     grid: {
-  //       vertLines: { visible: false },
-  //       horzLines: { visible: false },
-  //     },
-  //   };
-  //   this.chart = createChart('chart-container', chartOptions);
-  //   this.ChartAreaSeries = this.chart.addAreaSeries({
-  //     lineColor: '#2962FF',
-  //     topColor: '#2962FF',
-  //     bottomColor: 'rgba(41, 98, 255, 0.28)',
-  //   });
-  //   console.log('this.innerHeight', this.innerHeight);
-  //   console.log(
-  //     'this.innerHeight - (this.innerHeight - 700)',
-  //     this.innerHeight / 2
-  //   );
+    const chartOptions = {
+      height: this.innerHeight - 680,
+      width: this.innerWidth - 300,
+      layout: {
+        textColor: 'black',
+        background: { color: 'white' },
+      },
+      grid: {
+        vertLines: { visible: false },
+        horzLines: { visible: false },
+      },
+    };
+    this.chart = createChart('chart-container', chartOptions);
+    this.ChartAreaSeries = this.chart.addAreaSeries({
+      lineColor: '#2962FF',
+      topColor: '#2962FF',
+      bottomColor: 'rgba(41, 98, 255, 0.28)',
+    });
+    console.log('this.innerHeight', this.innerHeight);
+    console.log(
+      'this.innerHeight - (this.innerHeight - 700)',
+      this.innerHeight / 2
+    );
   }
 
-  getLiveItem(token: number, type?: string): number {
-  //   switch (type) {
-  //     case 'close':
-  //       return (
-  //         this.liveData.find((item: LiveData) => {
-  //           if (item.instrument_token === token) {
-  //             return item;
-  //           }
-  //           return '';
-  //         })?.ohlc.close ?? 0
-  //       );
-  //     case 'change':
-  //       return (
-  //         this.liveData.find((item: LiveData) => {
-  //           if (item.instrument_token === token) {
-  //             return item;
-  //           }
-  //           return '';
-  //         })?.change ?? 0
-  //       );
-  //     default:
-  //       return (
-  //         this.liveData.find((item: LiveData) => {
-  //           if (item.instrument_token === token) {
-  //             return item;
-  //           }
-  //           return '';
-  //         })?.last_price ?? 0
-  //       );
-  //   }
-  return 0
+   getLiveItem(token: string, type?: string) {
+    switch (type) {
+      case 'change':
+        let stock = this.liveData.find((item: ITickerData) => {
+          console.log('item.id', item.id)
+          console.log('token', token)
+          if (item.id === token) {
+            return item;
+          }
+          return 0;
+        });
+        return stock?.change ?? 0;
+      case 'current':
+        let data = this.liveData.find((item: ITickerData) => {
+          if (item.id === token) {
+            return item;
+          }
+          return 0;
+        });
+        return data?.price ?? 0;
+      default:
+        let closePrice = this.nifty200.find(item => item.symbol===token);
+        return closePrice?.ohlc?.Close?? 0;
+    }
   }
 
-  deleteWatchListItem(watchListItem: WatchList, stockItem: Stock) {
+  deleteWatchListItem(watchListItem: WatchList, stockItem: IStockData) {
     this.watchListData.forEach((watchList: WatchList) => {
       if (watchList._id === watchListItem._id) {
         watchListItem = watchList;
         watchList.stocks = watchList.stocks.filter(
-          (stock: Stock) =>
-            stock.instrument_token !== stockItem.instrument_token
+          (stock: IStockData) =>
+            stock.symbol !== stockItem.symbol
         );
       }
       return watchList;
@@ -207,11 +206,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  updateWatchList(op: any, event: any, stock: Stock, watchListId: number) {
+  updateWatchList(op: any, event: any, stock: IStockData, watchListId: number) {
     this.watchListData.forEach((watchList: WatchList) => {
       if (watchList._id === watchListId) {
         let index = watchList.stocks.findIndex(
-          (item: Stock) => item.instrument_token === stock.instrument_token
+          (item: IStockData) => item.symbol === stock.symbol
         );
         if (index == -1) {
           watchList.stocks.push(stock);
@@ -286,102 +285,97 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.editWatchList = undefined;
   }
 
-  selectingStock(stock: Stock) {
-    // this.selectedStock = stock;
-    // this.displyChart();
+  selectingStock(stock: IStockData) {
+    this.selectedStock = stock;
+    this.displayChart();
   }
 
-  async displyChart() {
-    // let dataObject = this.calculateDateRange(this.chartTimeFrame);
-    // let historyData: HistoryData = await firstValueFrom(
-    //   this.http.get<HistoryData>(
-    //     `https://api.investit.ai/data/historical?instrument_token=${this.selectedStock.instrument_token}&interval=${this.chartTimeFrame}&from_date=${dataObject.startDate}&to_date=${dataObject.endDate}`
-    //   )
-    // );
-    // if (historyData.status) {
-    //   this.stockHistoryData = historyData.payload.map((item) => {
-    //     return {
-    //       time: (Date.parse(item.date) / 1000) as Time,
-    //       value: item.close,
-    //     };
-    //   });
-    //   this.selectedChartStatisticData =
-    //     historyData.payload[historyData.payload.length - 1];
-    //   this.ChartAreaSeries.setData(this.stockHistoryData);
-    // }
-    // console.log(
-    //   'this.selectedChartStatisticData',
-    //   this.selectedChartStatisticData
-    // );
+  async displayChart() {
+    let historyData: HistoryData = await firstValueFrom(
+      this.http.get<HistoryData>(
+        `http://127.0.0.1:8000/history?ticker=AAPL&interval=5m&period=7d`
+      )
+    );
+    if (historyData.status) {
+      this.stockHistoryData = historyData.payload.map((item) => {
+        return {
+          time: Math.floor(new Date(item.Datetime).getTime() / 1000) as Time,
+          value: item.Close, // Use uppercase keys as per your backend response
+        };
+      });
+
+      this.selectedChartStatisticData =
+        historyData.payload[historyData.payload.length - 1];
+      this.ChartAreaSeries.setData(this.stockHistoryData);
+    }
   }
 
   calculateDateRange(interval: string): { startDate: string; endDate: string } {
-    // const currentDate = new Date();
-    // let startDate = new Date();
+    const currentDate = new Date();
+    let startDate = new Date();
 
-    // switch (interval) {
-    //   case '60minute':
-    //     // Subtract 1 year
-    //     startDate.setFullYear(currentDate.getFullYear() - 1);
-    //     break;
-    //   case '30minute':
-    //     // Subtract 6 months
-    //     startDate.setMonth(currentDate.getMonth() - 6);
-    //     break;
-    //   case '15minute':
-    //     // Subtract 4 months
-    //     startDate.setMonth(currentDate.getMonth() - 4);
-    //     break;
-    //   case '5minute':
-    //     // Subtract 3 months
-    //     startDate.setMonth(currentDate.getMonth() - 3);
-    //     break;
-    //   default:
-    //     throw new Error('Invalid interval selected');
-    //   }
+    switch (interval) {
+      case '60minute':
+        // Subtract 1 year
+        startDate.setFullYear(currentDate.getFullYear() - 1);
+        break;
+      case '30minute':
+        // Subtract 6 months
+        startDate.setMonth(currentDate.getMonth() - 6);
+        break;
+      case '15minute':
+        // Subtract 4 months
+        startDate.setMonth(currentDate.getMonth() - 4);
+        break;
+      case '5minute':
+        // Subtract 3 months
+        startDate.setMonth(currentDate.getMonth() - 3);
+        break;
+      default:
+        throw new Error('Invalid interval selected');
+      }
 
-    //   return {
-    //     startDate: new Date(startDate).toLocaleString('sv', {
-    //       timeZone: 'Asia/Kolkata',
-    //     }),
-    //     endDate: new Date(currentDate).toLocaleString('sv', {
-    //       timeZone: 'Asia/Kolkata',
-    //     }),
-    //   };
-    return {startDate: new Date().toISOString(), endDate: new Date().toISOString()};}
-  
-  upDateChartData(data: LiveData) {
-  //   if (this.selectedStock.instrument_token === data.instrument_token) {
-  //     let lastTimer = new Date(this.selectedChartStatisticData.date);
+      return {
+        startDate: new Date(startDate).toLocaleString('sv', {
+          timeZone: 'Asia/Kolkata',
+        }),
+        endDate: new Date(currentDate).toLocaleString('sv', {
+          timeZone: 'Asia/Kolkata',
+        }),
+      };
+  }
 
-  //     let add5Time = lastTimer.setMinutes(
-  //       new Date(this.selectedChartStatisticData.date).getMinutes() + 5
-  //     );
+  upDateChartData(data: ITickerData) {
+    if (this.selectedStock.symbol === data.id) {
+      let lastTimer = new Date(this.selectedChartStatisticData.Datetime);
 
-  //     let add5TimeConvertToAsia = new Date(add5Time).toLocaleString('sv', {
-  //       timeZone: 'Asia/Kolkata',
-  //     });
-  //     const now = new Date();
-  //     const isWithinRestrictedTime =
-  //       (now.getHours() >= 15 && now.getMinutes() >= 30) ||
-  //       (now.getHours() < 9 && now.getMinutes() > 15);
+      let add5Time = lastTimer.setMinutes(
+        new Date(this.selectedChartStatisticData.Datetime).getMinutes() + 5
+      );
 
-  //     if (
-  //       new Date().getTime() > new Date(add5Time).getTime() &&
-  //       isWithinRestrictedTime
-  //     ) {
-  //       let object: { time: Time; value: number } = {
-  //         time: (Date.parse(add5TimeConvertToAsia) / 1000) as Time,
-  //         value: data.last_price,
-  //       };
-  //       this.selectedChartStatisticData.date = add5TimeConvertToAsia;
-  //       this.stockHistoryData.push(object);
-  //     } else {
-  //       this.stockHistoryData[this.stockHistoryData.length - 1].value =
-  //         data.last_price;
-  //     }
-  //     this.ChartAreaSeries.setData(this.stockHistoryData);
-  //   }
+      let add5TimeConvertToAsia = new Date(add5Time).toLocaleString('sv', {
+        timeZone: 'Asia/Kolkata',
+      });
+      const now = new Date();
+      const isWithinRestrictedTime =
+        (now.getHours() >= 15 && now.getMinutes() >= 30) ||
+        (now.getHours() < 9 && now.getMinutes() > 15);
+
+      if (
+        new Date().getTime() > new Date(add5Time).getTime() &&
+        isWithinRestrictedTime
+      ) {
+        let object: { time: Time; value: number } = {
+          time: (Date.parse(add5TimeConvertToAsia) / 1000) as Time,
+          value: data.price,
+        };
+        this.selectedChartStatisticData.Datetime = add5TimeConvertToAsia;
+        this.stockHistoryData.push(object);
+      } else {
+        this.stockHistoryData[this.stockHistoryData.length - 1].value =
+          data.price;
+      }
+      this.ChartAreaSeries.setData(this.stockHistoryData);
+    }
   }
 }
-
