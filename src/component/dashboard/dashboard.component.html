@@ -266,29 +266,28 @@
                 <p>
                   {{
                     getLiveItem(stock.symbol, "current")
-                      ? getLiveItem(stock.symbol, "current")
+                      ? getLiveItem(stock.symbol, "current").toFixed(2)
                       : "-"
                   }}
                 </p>
                 <div
                   class="flex text-xs"
                   [ngStyle]="
-                    getLiveItem(stock.symbol, 'change') < 0
+                    getLiveItem(stock.symbol, 'percentage') < 0
                       ? { color: 'red' }
                       : { color: 'green' }
                   "
                 >
                   <span class="mr-2">{{
-                    (
-                      getLiveItem(stock.symbol, "current") -
-                      getLiveItem(stock.symbol, "close")
-                    ).toFixed(2)
+                    getLiveItem(stock.symbol, "change").toFixed(2)
                   }}</span>
-
+  
                   (<span
-                    >{{ getLiveItem(stock.symbol, "change").toFixed(2) }}%</span
+                    >{{
+                      getLiveItem(stock.symbol, "percentage")?.toFixed(2)
+                    }}%</span
                   >)
-                </div>
+              </div>
               </div>
             </div>
             }
