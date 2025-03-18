@@ -80,7 +80,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   chartTimeFrame = '5minute';
   ChartAreaSeries!: any;
   chart: any;
-  selectedChartStatisticData!: IHistoryData;
+  selectedChartStatisticData!: any;
   stockHistoryData!: { time: Time; value: number }[];
 
   watchList: any[] = [];
@@ -119,9 +119,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     let symbols = this.nifty200.map((data: IStockData) => data.symbol);
     this.stockService.connect(symbols);
     this.stockService.liveData.subscribe((data: ITickerData) => {
-      console.log('data', data)
+
       let index = this.liveData.findIndex((stock) => stock.id === data.id);
       if (index === -1) {
+  
         this.liveData.push(data);
       } else {
         this.liveData[index] = data;
@@ -131,7 +132,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    let data = this.calculateDateRange(this.chartTimeFrame);
     this.displayChart();
     this.createChart();
   }
@@ -155,37 +155,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       topColor: '#2962FF',
       bottomColor: 'rgba(41, 98, 255, 0.28)',
     });
-    console.log('this.innerHeight', this.innerHeight);
-    console.log(
-      'this.innerHeight - (this.innerHeight - 700)',
-      this.innerHeight / 2
-    );
   }
 
    getLiveItem(token: string, type?: string) {
-    switch (type) {
-      case 'change':
-        let stock = this.liveData.find((item: ITickerData) => {
-          console.log('item.id', item.id)
-          console.log('token', token)
-          if (item.id === token) {
-            return item;
-          }
-          return 0;
-        });
-        return stock?.change ?? 0;
-      case 'current':
-        let data = this.liveData.find((item: ITickerData) => {
-          if (item.id === token) {
-            return item;
-          }
-          return 0;
-        });
-        return data?.price ?? 0;
-      default:
-        let closePrice = this.nifty200.find(item => item.symbol===token);
-        return closePrice?.ohlc?.Close?? 0;
+    let closePrice = this.nifty200.find(item => item.symbol===token);
+    let stock = this.liveData.find((item: ITickerData) => {
+      if (item.id === token) {
+        return item;
+      }
+    return 0})
+    if(stock){
+      switch (type) {
+        case 'change':
+          return stock?.change ?? 0;
+        case 'percentage':
+          return stock?.changePercent ?? 0;
+        case 'current':
+          return stock?.price ?? 0;
+        default:
+          return closePrice?.ohlc?.Close?? 0;
+      }
     }
+    return 0
   }
 
   deleteWatchListItem(watchListItem: WatchList, stockItem: IStockData) {
@@ -293,7 +284,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   async displayChart() {
     let historyData: HistoryData = await firstValueFrom(
       this.http.get<HistoryData>(
-        `http://127.0.0.1:8000/history?ticker=AAPL&interval=5m&period=7d`
+        `http://127.0.0.1:8000/history?ticker=${this.selectedStock.symbol}&interval=5m&period=7d`
       )
     );
     if (historyData.status) {
@@ -304,8 +295,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         };
       });
 
-      this.selectedChartStatisticData =
-        historyData.payload[historyData.payload.length - 1];
+      const lastOHLC =  this.nifty200.find(item=>item.symbol===this.selectedStock.symbol)
+      if(lastOHLC){
+
+        this.selectedChartStatisticData =
+        {...historyData.payload[historyData.payload.length - 1], ...lastOHLC['ohlc']};
+      }
       this.ChartAreaSeries.setData(this.stockHistoryData);
     }
   }
@@ -348,11 +343,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   upDateChartData(data: ITickerData) {
     if (this.selectedStock.symbol === data.id) {
       let lastTimer = new Date(this.selectedChartStatisticData.Datetime);
-
       let add5Time = lastTimer.setMinutes(
         new Date(this.selectedChartStatisticData.Datetime).getMinutes() + 5
       );
-
       let add5TimeConvertToAsia = new Date(add5Time).toLocaleString('sv', {
         timeZone: 'Asia/Kolkata',
       });
@@ -375,7 +368,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.stockHistoryData[this.stockHistoryData.length - 1].value =
           data.price;
       }
+      console.log('this.stockHistoryData', this.stockHistoryData)
       this.ChartAreaSeries.setData(this.stockHistoryData);
     }
+  }
+  ngOnDestroy() {
+    this.stockService.liveData.unsubscribe()
+    this.stockService.disconnect();
   }
 }

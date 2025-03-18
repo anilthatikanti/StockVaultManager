@@ -36,7 +36,6 @@ export class StockService {
     const jwtToken: any = await this.firebaseAuth.currentUser?.getIdToken();
     if (jwtToken) {
       this.ws = new WebSocket(`ws://127.0.0.1:8000/ws`, jwtToken);
-      console.log('WebSocket connection established');
       this.ws.onopen = () => {
         this.ws.send(JSON.stringify(nifty200InstrumentalTokens));
       };
@@ -49,11 +48,25 @@ export class StockService {
       };
 
       this.ws.onmessage = (event) => {
-        this.liveData.next(JSON.parse(event.data));
+        const stocks = JSON.parse(event.data); // Convert JSON string to object
+        if (Array.isArray(stocks)) {
+          stocks.forEach(stock => this.liveData.next(stock)); // Emit each stock separately
+        } else {
+          this.liveData.next(stocks); // If it's a single object, emit directly
+        }
       };
     }
   }
+
+  disconnect() {
+    if (this.ws) {
+      console.log('🚫 Closing WebSocket...');
+      this.ws.close();  // ✅ Properly close WebSocket   // ✅ Prevent reconnection issues
+    }
+  }
 }
+
+
 
 export const watchListData: WatchList[] = [
   {
