@@ -153,7 +153,8 @@ export class StorageComponent implements OnInit {
 
   async uploadFile(files: any, fileUpload: any) {
     const file = files.files[0]; // Get the selected file
-    if(file.size > 1024 * 1024 * 1024){
+    console.log('file', file)
+    if(file.size < 1024 * 1024){
       try {
         this.uploadFileBtnLoading = true;
         console.log('Selected file:', file);
