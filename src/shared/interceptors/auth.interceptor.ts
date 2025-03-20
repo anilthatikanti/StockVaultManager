@@ -11,13 +11,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     mergeMap((firebaseUser) =>
       firebaseUser
         ? from(firebaseUser.getIdToken()).pipe(
-            mergeMap((token) => {
-              return next(
+            mergeMap((token) => 
+               next(
                 req.clone({
                   setHeaders: { Authorization: `Bearer ${token}` },
                 })
-              );
-            })
+              )
+            )
           )
         : next(req)
     ),
