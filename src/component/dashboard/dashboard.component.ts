@@ -28,6 +28,7 @@ import {
   IHistoryData,
   HistoryData,
 } from '../../shared/interface/response.interface';
+import { Y_SERVER_URL } from '../../environments/environment';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -51,7 +52,7 @@ import {
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-  nifty200: IStockData[] = [];
+  nifty50: IStockData[] = [];
   liveData: ITickerData[] = [];
   innerHeight: number = window.innerHeight;
   innerWidth: number = window.innerWidth;
@@ -106,20 +107,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ) {
     this.onWindowResize();
     this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
-      this.nifty200 = this.stockService.nifty200Data.filter(
+      this.nifty50 = this.stockService.nifty50Data.filter(
         (data: IStockData) => data.name.startsWith(value.trim().toUpperCase())
       );
     });
   }
 
   async ngOnInit() {
-    await this.stockService.loadNifty200Tokens();
-    this.nifty200 = this.stockService.nifty200Data;
-    this.selectedStock = this.stockService.nifty200Data[0];
-    let symbols = this.nifty200.map((data: IStockData) => data.symbol);
+    await this.stockService.loadNifty50Tokens();
+    this.nifty50 = this.stockService.nifty50Data;
+    this.selectedStock = this.stockService.nifty50Data[0];
+    let symbols = this.nifty50.map((data: IStockData) => data.symbol);
     this.stockService.connect(symbols);
     this.stockService.liveData.subscribe((data: ITickerData) => {
-
       let index = this.liveData.findIndex((stock) => stock.id === data.id);
       if (index === -1) {
   
@@ -158,7 +158,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
    getLiveItem(token: string, type?: string) {
-    let closePrice = this.nifty200.find(item => item.symbol===token);
+    let closePrice = this.nifty50.find(item => item.symbol===token);
     let stock = this.liveData.find((item: ITickerData) => {
       if (item.id === token) {
         return item;
@@ -284,7 +284,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   async displayChart() {
     let historyData: HistoryData = await firstValueFrom(
       this.http.get<HistoryData>(
-        `http://127.0.0.1:8000/history?ticker=${this.selectedStock.symbol}&interval=5m&period=7d`
+        `${Y_SERVER_URL}/history?ticker=${this.selectedStock.symbol}&interval=5m&period=7d`
       )
     );
     if (historyData.status) {
@@ -295,7 +295,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         };
       });
 
-      const lastOHLC =  this.nifty200.find(item=>item.symbol===this.selectedStock.symbol)
+      const lastOHLC =  this.nifty50.find(item=>item.symbol===this.selectedStock.symbol)
       if(lastOHLC){
 
         this.selectedChartStatisticData =

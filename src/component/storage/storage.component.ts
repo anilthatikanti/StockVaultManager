@@ -164,7 +164,7 @@ export class StorageComponent implements OnInit {
 
       const res: Response = await firstValueFrom(
         this.http.post<Response>(
-          '${SERVER_URL}/files/upload-file',
+          `${SERVER_URL}/files/upload-file`,
           formData
         )
       );

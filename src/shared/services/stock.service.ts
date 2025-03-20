@@ -5,12 +5,13 @@ import { IStockData, ITickerData } from '../interface/stock.interface';
 import { firstValueFrom, Subject } from 'rxjs';
 import { WatchList } from '../interface/watchList.interface';
 import { Auth } from '@angular/fire/auth';
+import { Y_SERVER_URL } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StockService {
-  nifty200Data: IStockData[] = [];
+  nifty50Data: IStockData[] = [];
   liveData: Subject<ITickerData> = new Subject<ITickerData>();
   dataMap: Map<number, ITickerData> = new Map<number, ITickerData>();
   ws!: WebSocket;
@@ -18,26 +19,26 @@ export class StockService {
 
   constructor(private http: HttpClient, private firebaseAuth: Auth) {}
 
-  async loadNifty200Tokens(): Promise<void> {
+  async loadNifty50Tokens(): Promise<void> {
     try {
       const data = await firstValueFrom(
-        this.http.get<ApiResponse>('http://127.0.0.1:8000/nifty50')
+        this.http.get<ApiResponse>(`${Y_SERVER_URL}/nifty50`)
       );
       if (data.status) {
-        this.nifty200Data = data.payload;
+        this.nifty50Data = data.payload;
         this.isTockensLoaded = true;
       }
     } catch (error) {
-      console.error('Error loading Nifty 200 tokens', error);
+      console.error('Error loading Nifty 50 tokens', error);
     }
   }
 
-  async connect(nifty200InstrumentalTokens: string[]) {
+  async connect(nifty50InstrumentalTokens: string[]) {
     const jwtToken: any = await this.firebaseAuth.currentUser?.getIdToken();
     if (jwtToken) {
       this.ws = new WebSocket(`ws://127.0.0.1:8000/ws`, jwtToken);
       this.ws.onopen = () => {
-        this.ws.send(JSON.stringify(nifty200InstrumentalTokens));
+        this.ws.send(JSON.stringify(nifty50InstrumentalTokens));
       };
       this.ws.onerror = (error) => {
         console.error('WebSocket error:', error);
