@@ -91,7 +91,7 @@
           <div
             class="px-3 pt-3 flex justify-content-between align-items-center"
           >
-            <h5 class="text-base font-medium">Nifty 200 stocks</h5>
+            <h5 class="text-base font-medium">Nifty 50 stocks</h5>
             <input
               type="text"
               pInputText
@@ -106,7 +106,7 @@
           class="px-3 mt-3"
           [style]="{ height: innerHeight - 646 + 'px', 'overflow-y': 'auto','min-height': '248px', }"
         >
-          @for (item of nifty200; track $index) { @if($index){
+          @for (item of nifty50; track $index) { @if($index){
           <p-divider />
           }
           <div class="flex justify-content-between align-items-center">
