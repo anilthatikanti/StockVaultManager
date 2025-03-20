@@ -153,13 +153,11 @@ export class StorageComponent implements OnInit {
 
   async uploadFile(files: any, fileUpload: any) {
     const file = files.files[0]; // Get the selected file
-    console.log('file', file)
     if(file.size < 1024 * 1024){
       try {
         this.uploadFileBtnLoading = true;
-        console.log('Selected file:', file);
-  
         // Manually send file to the backend
+        console.log('this.currentFolder', this.currentFolder)
         const formData = new FormData();
         formData.append('folderId', this.currentFolder._id);
         formData.append('file', file);
