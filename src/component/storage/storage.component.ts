@@ -152,41 +152,48 @@ export class StorageComponent implements OnInit {
   }
 
   async uploadFile(files: any, fileUpload: any) {
-    try {
-      this.uploadFileBtnLoading = true;
-      const file = files.files[0]; // Get the selected file
-      console.log('Selected file:', file);
-
-      // Manually send file to the backend
-      const formData = new FormData();
-      formData.append('folderId', this.currentFolder._id);
-      formData.append('file', file);
-
-      const res: Response = await firstValueFrom(
-        this.http.post<Response>(
-          `${SERVER_URL}/files/upload-file`,
-          formData
-        )
-      );
-      if (res?.success) {
-        this.tableData.push(res.data);
+    const file = files.files[0]; // Get the selected file
+    if(file.size > 1024 * 1024 * 1024){
+      try {
+        this.uploadFileBtnLoading = true;
+        console.log('Selected file:', file);
+  
+        // Manually send file to the backend
+        const formData = new FormData();
+        formData.append('folderId', this.currentFolder._id);
+        formData.append('file', file);
+  
+        const res: Response = await firstValueFrom(
+          this.http.post<Response>(
+            `${SERVER_URL}/files/upload-file`,
+            formData
+          )
+        );
+        if (res?.success) {
+          this.tableData.push(res.data);
+          this.toast.messageService?.add({
+            severity: 'success',
+            summary: 'Success',
+            detail: 'File uploaded successfully',
+          });
+        }
+      } catch (err: any) {
+        console.error('File upload error:', err)
         this.toast.messageService?.add({
-          severity: 'success',
-          summary: 'Success',
-          detail: 'File uploaded successfully',
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to upload file',
         });
-      }
-    } catch (err: any) {
-      console.error('File upload error:', err);
+      } 
+    }else{
       this.toast.messageService?.add({
-        severity: 'success',
-        summary: 'Success',
-        detail: err.message,
+        severity: 'error',
+        summary: 'Error',
+        detail: 'File size should not exceed 1MB'
       });
-    } finally {
-      fileUpload.clear();
-      this.uploadFileBtnLoading = false;
     }
+    fileUpload.clear();
+    this.uploadFileBtnLoading = false;
   }
 
   async createFolder() {
