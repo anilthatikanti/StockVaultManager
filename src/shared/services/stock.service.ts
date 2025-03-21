@@ -5,7 +5,7 @@ import { IStockData, ITickerData } from '../interface/stock.interface';
 import { firstValueFrom, Subject } from 'rxjs';
 import { WatchList } from '../interface/watchList.interface';
 import { Auth } from '@angular/fire/auth';
-import { Y_SERVER_URL } from '../../environments/environment';
+import {  WEB_SOCKET, Y_SERVER_URL } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -36,7 +36,7 @@ export class StockService {
   async connect(nifty50InstrumentalTokens: string[]) {
     const jwtToken: any = await this.firebaseAuth.currentUser?.getIdToken();
     if (jwtToken) {
-      this.ws = new WebSocket(`ws://127.0.0.1:8000/ws`, jwtToken);
+      this.ws = new WebSocket(WEB_SOCKET, jwtToken);
       this.ws.onopen = () => {
         this.ws.send(JSON.stringify(nifty50InstrumentalTokens));
       };

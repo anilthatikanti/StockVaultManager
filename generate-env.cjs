@@ -31,7 +31,6 @@ fs.writeFile(targetPath, envFile, (err) => {
     console.error(err);
     throw err;
   } else {
-    console.log(process.env.WEB_APP_URL);
     console.log(
       successColor,
       `${checkSign} Successfully generated environment file`
