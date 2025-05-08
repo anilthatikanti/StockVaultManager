@@ -14,5 +14,5 @@ export const environment = {
 
   export const WEB_APP_URL = 'http://localhost:4200';
 export const SERVER_URL = 'http://localhost:3000';
-export const Y_SERVER_URL = 'http://127.0.0.1:8000';
-export const WEB_SOCKET = 'ws://127.0.0.1:8000';
+// export const SERVER_URL = 'http://127.0.0.1:8000';
+export const WEB_SOCKET = 'ws://localhost:3000';

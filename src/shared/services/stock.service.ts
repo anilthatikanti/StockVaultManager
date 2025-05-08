@@ -5,7 +5,7 @@ import { IStockData, ITickerData } from '../interface/stock.interface';
 import { firstValueFrom, Subject } from 'rxjs';
 import { WatchList } from '../interface/watchList.interface';
 import { Auth } from '@angular/fire/auth';
-import {  WEB_SOCKET, Y_SERVER_URL } from '../../environments/environment';
+import {  WEB_SOCKET, SERVER_URL } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -16,13 +16,19 @@ export class StockService {
   dataMap: Map<number, ITickerData> = new Map<number, ITickerData>();
   ws!: WebSocket;
   isTockensLoaded: boolean = false;
+  private reconnectAttempts: number = 0;
+  private maxReconnectAttempts: number = 5;
+  private reconnectDelay: number = 1000;
+  private messageBuffer: ITickerData[] = [];
+  private bufferSize: number = 10;
+  private bufferTimeout: number = 100; // ms
 
   constructor(private http: HttpClient, private firebaseAuth: Auth) {}
 
   async loadNifty50Tokens(): Promise<void> {
     try {
       const data = await firstValueFrom(
-        this.http.get<ApiResponse>(`${Y_SERVER_URL}/nifty50`)
+        this.http.get<ApiResponse>(`${SERVER_URL}/stocks/nifty50`)
       );
       if (data.status) {
         this.nifty50Data = data.payload;
@@ -33,30 +39,82 @@ export class StockService {
     }
   }
 
-  async connect(nifty50InstrumentalTokens: string[]) {
-    const jwtToken: any = await this.firebaseAuth.currentUser?.getIdToken();
-    if (jwtToken) {
+  private async connectWebSocket(nifty50InstrumentalTokens: string[]) {
+    try {
+      const jwtToken: any = await this.firebaseAuth.currentUser?.getIdToken();
+      if (!jwtToken) {
+        throw new Error('No authentication token available');
+      }
+
       this.ws = new WebSocket(WEB_SOCKET, jwtToken);
+      
       this.ws.onopen = () => {
-        this.ws.send(JSON.stringify(nifty50InstrumentalTokens));
+        console.log('WebSocket connected');
+        this.reconnectAttempts = 0;
+        this.ws.send(JSON.stringify({
+          "action": "subscribe",
+          "variables": nifty50InstrumentalTokens,
+          "type": "ltp"
+        }));
       };
+
       this.ws.onerror = (error) => {
         console.error('WebSocket error:', error);
+        this.handleReconnect(nifty50InstrumentalTokens);
       };
 
       this.ws.onclose = (event) => {
         console.warn('WebSocket closed:', event);
+        this.handleReconnect(nifty50InstrumentalTokens);
       };
 
       this.ws.onmessage = (event) => {
-        const stocks = JSON.parse(event.data); // Convert JSON string to object
-        if (Array.isArray(stocks)) {
-          stocks.forEach(stock => this.liveData.next(stock)); // Emit each stock separately
-        } else {
-          this.liveData.next(stocks); // If it's a single object, emit directly
+        try {
+          const stocks = JSON.parse(event.data);
+          if (Array.isArray(stocks)) {
+            this.bufferMessages(stocks);
+          } else {
+            this.bufferMessages([stocks]);
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
       };
+    } catch (error) {
+      console.error('Error establishing WebSocket connection:', error);
+      this.handleReconnect(nifty50InstrumentalTokens);
     }
+  }
+
+  private handleReconnect(tokens: string[]) {
+    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+      this.reconnectAttempts++;
+      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+      setTimeout(() => this.connectWebSocket(tokens), this.reconnectDelay * this.reconnectAttempts);
+    } else {
+      console.error('Max reconnection attempts reached');
+    }
+  }
+
+  private bufferMessages(messages: ITickerData[]) {
+    this.messageBuffer.push(...messages);
+    
+    if (this.messageBuffer.length >= this.bufferSize) {
+      this.flushBuffer();
+    } else {
+      setTimeout(() => this.flushBuffer(), this.bufferTimeout);
+    }
+  }
+
+  private flushBuffer() {
+    if (this.messageBuffer.length > 0) {
+      this.messageBuffer.forEach(stock => this.liveData.next(stock));
+      this.messageBuffer = [];
+    }
+  }
+
+  async connect(nifty50InstrumentalTokens: string[]) {
+    await this.connectWebSocket(nifty50InstrumentalTokens);
   }
 
   disconnect() {

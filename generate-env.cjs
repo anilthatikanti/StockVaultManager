@@ -21,7 +21,6 @@ const envFile = `export const environment = {
 
   export const WEB_APP_URL = '${process.env.WEB_APP_URL}';
 export const SERVER_URL = '${process.env.SERVER_URL}';
-export const Y_SERVER_URL = '${process.env.Y_SERVER_URL}';
 export const WEB_SOCKET = '${process.env.WEB_SOCKET}';
 `;
 

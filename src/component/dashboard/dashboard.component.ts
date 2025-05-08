@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, HostListener, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MenuItem, MessageService } from 'primeng/api';
@@ -28,7 +28,8 @@ import {
   IHistoryData,
   HistoryData,
 } from '../../shared/interface/response.interface';
-import { Y_SERVER_URL } from '../../environments/environment';
+import {SERVER_URL } from '../../environments/environment';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -46,12 +47,15 @@ import { Y_SERVER_URL } from '../../environments/environment';
     ToastModule,
     FloatLabelModule,
     InputTextModule,
+      ProgressSpinnerModule,
     DialogModule,
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
+  @ViewChild('chartContainer') chartContainerRef!: ElementRef;
+  
   nifty50: IStockData[] = [];
   liveData: ITickerData[] = [];
   innerHeight: number = window.innerHeight;
@@ -60,22 +64,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   showAddButtonId!: number;
   activeTabViewIndex: number = 0;
   searchSubject: Subject<string> = new Subject();
-  editWatchList!: WatchList | undefined;
+  editWatchList?: WatchList;
   createWatchListDialogVisible: boolean = false;
   createWatchListName: string = '';
   selectedStock: IStockData =  {
     "symbol": "RELIANCE.NS",
     "name": "RELIANCE INDUSTRIES LTD",
-    "current_price": 1238.85,
-    "market_cap": 16764613165056,
+    "current_price": 0,
+    "market_cap": 0,
     "sector": "Energy",
     "industry": "Oil & Gas Refining & Marketing",
     "ohlc": {
-        "Open": 1242.1500244140625,
-        "High": 1257.4000244140625,
-        "Low": 1233.0999755859375,
-        "Close": 1238.8499755859375,
-        "Volume": 16635512.0
+        "Open": 0,
+        "High": 0,
+        "Low":0,
+        "Close": 0,
+        "Volume": 0
     }
 }
   chartTimeFrame = '5minute';
@@ -91,6 +95,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     { label: 'Products', icon: 'pi pi-list' },
     { label: 'Messages', icon: 'pi pi-inbox' },
   ];
+  private chartUpdateThrottle: number = 100; // ms
+  private lastChartUpdate: number = 0;
+  private chartDataLimit: number = 1000; // Maximum number of data points to keep
+  private chartUpdateTimeout: any;
+  isLoading: boolean = true;
+  isChartLoading: boolean = true;
+  isStocksLoading: boolean = true;
+  loadingMessage: string = 'Loading dashboard...';
+  private isChartInitialized: boolean = false;
+  private shouldInitializeChart: boolean = false;
+  isChartReady: boolean = false;
+  isMarketClosed = false;
+
   @HostListener('window:resize', ['$event'])
   onWindowResize() {
     this.innerHeight = window.innerHeight;
@@ -114,69 +131,179 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   async ngOnInit() {
-    await this.stockService.loadNifty50Tokens();
-    this.nifty50 = this.stockService.nifty50Data;
-    this.selectedStock = this.stockService.nifty50Data[0];
-    let symbols = this.nifty50.map((data: IStockData) => data.symbol);
-    this.stockService.connect(symbols);
-    this.stockService.liveData.subscribe((data: ITickerData) => {
-      let index = this.liveData.findIndex((stock) => stock.id === data.id);
-      if (index === -1) {
-  
-        this.liveData.push(data);
-      } else {
-        this.liveData[index] = data;
-      }
-      this.upDateChartData(data);
-    });
+    try {
+      this.isLoading = true;
+      this.loadingMessage = 'Loading Nifty 50 stocks...';
+      
+      // Load Nifty 50 data first
+      await this.stockService.loadNifty50Tokens();
+      this.nifty50 = this.stockService.nifty50Data;
+      this.selectedStock = this.nifty50[0];
+      
+      // Initialize WebSocket connection
+      this.loadingMessage = 'Connecting to live data...';
+      const symbols = this.nifty50.map((data: IStockData) => data.symbol);
+      await this.stockService.connect(symbols);
+      
+      // Subscribe to live data
+      this.stockService.liveData.subscribe((data: ITickerData|any) => {
+        if(data.type === "closed"){ 
+          this.isMarketClosed = true;
+          this.loadingMessage = data.error
+          return;
+        }
+        this.isMarketClosed = false;
+        const index = this.liveData.findIndex((stock) => stock.id === data.id);
+        if (index === -1) {
+          this.liveData.push(data);
+        } else {
+          this.liveData[index] = data;
+        }
+        if (this.isChartInitialized && this.ChartAreaSeries) {
+          this.upDateChartData(data);
+        }
+      });
+
+      this.isStocksLoading = false;
+      this.isLoading = false;
+    } catch (error) {
+      console.error('Error initializing dashboard:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to initialize dashboard. Please refresh the page.',
+      });
+      this.isLoading = false;
+    }
   }
 
   ngAfterViewInit(): void {
-    this.displayChart();
-    this.createChart();
+    // Initialize chart after view is ready
+    this.initializeChart();
   }
 
-  createChart() {
-    const chartOptions = {
-      height: this.innerHeight - 680,
-      width: this.innerWidth - 300,
-      layout: {
-        textColor: 'black',
-        background: { color: 'white' },
-      },
-      grid: {
-        vertLines: { visible: false },
-        horzLines: { visible: false },
-      },
-    };
-    this.chart = createChart('chart-container', chartOptions);
-    this.ChartAreaSeries = this.chart.addAreaSeries({
-      lineColor: '#2962FF',
-      topColor: '#2962FF',
-      bottomColor: 'rgba(41, 98, 255, 0.28)',
+  private async initializeChart() {
+    try {
+      this.isChartLoading = true;
+      this.isChartReady = false;
+      
+      // Wait for the chart container to be available
+      await new Promise<void>((resolve) => {
+        const checkContainer = () => {
+          const container = document.getElementById('chart-container');
+          if (container) {
+            resolve();
+          } else {
+            setTimeout(checkContainer, 100);
+          }
+        };
+        checkContainer();
+      });
+
+      const chartContainer = document.getElementById('chart-container');
+      if (!chartContainer) {
+        throw new Error('Chart container not found');
+      }
+
+      // Ensure container has dimensions
+      if (chartContainer.offsetHeight === 0 || chartContainer.offsetWidth === 0) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        if (chartContainer.offsetHeight === 0 || chartContainer.offsetWidth === 0) {
+          throw new Error('Chart container has no dimensions');
+        }
+      }
+
+      await this.createChart();
+      this.isChartInitialized = true;
+      
+      // Load initial chart data after initialization
+      if (this.selectedStock) {
+        await this.displayChart(this.selectedStock);
+      }
+    } catch (error) {
+      console.error('Error initializing chart:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to initialize chart. Please try again.',
+      });
+    } finally {
+      this.isChartLoading = false;
+      this.isChartReady = true;
+    }
+  }
+
+  private async createChart() {
+    return new Promise<void>((resolve, reject) => {
+      try {
+        const chartContainer = document.getElementById('chart-container');
+        if (!chartContainer) {
+          reject(new Error('Chart container not found'));
+          return;
+        }
+
+        const chartOptions = {
+          height: this.innerHeight - 680<400?400:this.innerHeight - 680,
+          width: this.innerWidth - 300,
+          layout: {
+            textColor: 'black',
+            background: { color: 'white' },
+          },
+          grid: {
+            vertLines: { visible: false },
+            horzLines: { visible: false },
+          },
+          timeScale: {
+            timeVisible: true,
+            secondsVisible: false,
+            fixLeftEdge: true,
+            fixRightEdge: true,
+            lockVisibleTimeRangeOnResize: true,
+          },
+          rightPriceScale: {
+            borderVisible: false,
+          },
+          handleScroll: {
+            mouseWheel: true,
+            pressedMouseMove: true,
+            horzTouchDrag: true,
+            vertTouchDrag: true,
+          },
+        };
+        
+        this.chart = createChart(chartContainer, chartOptions);
+        this.ChartAreaSeries = this.chart.addAreaSeries({
+          lineColor: '#2962FF',
+          topColor: '#2962FF',
+          bottomColor: 'rgba(41, 98, 255, 0.28)',
+          priceFormat: {
+            type: 'price',
+            precision: 2,
+            minMove: 0.01,
+          },
+        });
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 
    getLiveItem(token: string, type?: string) {
-    let closePrice = this.nifty50.find(item => item.symbol===token);
-    let stock = this.liveData.find((item: ITickerData) => {
-      if (item.id === token) {
-        return item;
-      }
-    return 0})
-    if(stock){
-      switch (type) {
-        case 'change':
-          return stock?.change ?? 0;
-        case 'percentage':
-          return stock?.changePercent ?? 0;
-        case 'current':
-          return stock?.price ?? 0;
-        default:
-          return closePrice?.ohlc?.Close?? 0;
-      }
+    if (!this.nifty50.length) return 0;
+    const stock = this.liveData.find((item: ITickerData) => item.id === token);
+    if (!stock) return 0;
+
+    switch (type) {
+      case 'change':
+        return stock.change ?? 0;
+      case 'percentage':
+        return stock.changePercent ?? 0;
+      case 'current':
+        return stock.price ?? 0;
+      default:
+        return this.nifty50.find(item => item.symbol === token)?.ohlc?.Close ?? 0;
     }
-    return 0
   }
 
   deleteWatchListItem(watchListItem: WatchList, stockItem: IStockData) {
@@ -277,31 +404,47 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   selectingStock(stock: IStockData) {
-    this.selectedStock = stock;
-    this.displayChart();
+    this.displayChart(stock);
   }
 
-  async displayChart() {
-    let historyData: HistoryData = await firstValueFrom(
-      this.http.get<HistoryData>(
-        `${Y_SERVER_URL}/history?ticker=${this.selectedStock.symbol}&interval=5m&period=7d`
-      )
-    );
-    if (historyData.status) {
-      this.stockHistoryData = historyData.payload.map((item) => {
-        return {
-          time: Math.floor(new Date(item.Datetime).getTime() / 1000) as Time,
-          value: item.Close, // Use uppercase keys as per your backend response
-        };
-      });
+  async displayChart(stock: IStockData = this.selectedStock) {
+    if (!this.ChartAreaSeries) {
+      console.warn('Chart not initialized yet');
+      return;
+    }
 
-      const lastOHLC =  this.nifty50.find(item=>item.symbol===this.selectedStock.symbol)
-      if(lastOHLC){
+    this.isChartLoading = true;
+    this.isChartReady = false;
+    try {
+      const historyData: HistoryData = await firstValueFrom(
+        this.http.get<HistoryData>(
+          `${SERVER_URL}/stocks/history?symbol=${stock.symbol}&interval=5m&period=7d`
+        )
+      );
 
-        this.selectedChartStatisticData =
-        {...historyData.payload[historyData.payload.length - 1], ...lastOHLC['ohlc']};
+      if (historyData.status) {
+        this.stockHistoryData = historyData.payload
+          .slice(-this.chartDataLimit)
+          .map((item) => ({
+            time: Math.floor(new Date(item.Datetime).getTime() / 1000) as Time,
+            value: item.Close,
+          }));
+        
+        this.selectedChartStatisticData = historyData.payload[historyData.payload.length - 1];
+        this.ChartAreaSeries.setData(this.stockHistoryData);
+        this.chart.timeScale().fitContent();
+        this.selectedStock = stock;
       }
-      this.ChartAreaSeries.setData(this.stockHistoryData);
+    } catch (error) {
+      console.error('Error fetching history data:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to fetch stock history data.',
+      });
+    } finally {
+      this.isChartLoading = false;
+      this.isChartReady = true;
     }
   }
 
@@ -341,12 +484,33 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   upDateChartData(data: ITickerData) {
+    if (!this.isChartInitialized || !this.ChartAreaSeries || !this.selectedStock || !this.selectedChartStatisticData) {
+      return;
+    }
+
     if (this.selectedStock.symbol === data.id) {
-      let lastTimer = new Date(this.selectedChartStatisticData.Datetime);
-      let add5Time = lastTimer.setMinutes(
+      const now = Date.now();
+      if (now - this.lastChartUpdate < this.chartUpdateThrottle) {
+        clearTimeout(this.chartUpdateTimeout);
+        this.chartUpdateTimeout = setTimeout(() => this.updateChartWithData(data), this.chartUpdateThrottle);
+        return;
+      }
+      this.updateChartWithData(data);
+      this.lastChartUpdate = now;
+    }
+  }
+
+  private updateChartWithData(data: ITickerData) {
+    if (!this.ChartAreaSeries || !this.selectedChartStatisticData || !this.stockHistoryData) {
+      return;
+    }
+
+    try {
+      const lastTimer = new Date(this.selectedChartStatisticData.Datetime);
+      const add5Time = lastTimer.setMinutes(
         new Date(this.selectedChartStatisticData.Datetime).getMinutes() + 5
       );
-      let add5TimeConvertToAsia = new Date(add5Time).toLocaleString('sv', {
+      const add5TimeConvertToAsia = new Date(add5Time).toLocaleString('sv', {
         timeZone: 'Asia/Kolkata',
       });
       const now = new Date();
@@ -358,22 +522,35 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         new Date().getTime() > new Date(add5Time).getTime() &&
         isWithinRestrictedTime
       ) {
-        let object: { time: Time; value: number } = {
+        const object: { time: Time; value: number } = {
           time: (Date.parse(add5TimeConvertToAsia) / 1000) as Time,
           value: data.price,
         };
         this.selectedChartStatisticData.Datetime = add5TimeConvertToAsia;
         this.stockHistoryData.push(object);
+        
+        if (this.stockHistoryData.length > this.chartDataLimit) {
+          this.stockHistoryData = this.stockHistoryData.slice(-this.chartDataLimit);
+        }
       } else {
-        this.stockHistoryData[this.stockHistoryData.length - 1].value =
-          data.price;
+        this.stockHistoryData[this.stockHistoryData.length - 1].value = data.price;
       }
-      console.log('this.stockHistoryData', this.stockHistoryData)
+      
       this.ChartAreaSeries.setData(this.stockHistoryData);
+    } catch (error) {
+      console.error('Error updating chart data:', error);
     }
   }
+
   ngOnDestroy() {
-    this.stockService.liveData.unsubscribe()
+    if (this.chartUpdateTimeout) {
+      clearTimeout(this.chartUpdateTimeout);
+    }
+    this.stockService.liveData.unsubscribe();
     this.stockService.disconnect();
+    if (this.chart) {
+      this.chart.remove();
+    }
+    this.isChartInitialized = false;
   }
 }
