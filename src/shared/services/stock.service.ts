@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ApiResponse } from '../interface/response.interface';
-import { IStockData, ITickerData } from '../interface/stock.interface';
-import { firstValueFrom, Subject } from 'rxjs';
+import { IClosed, IStockData, ITickerData } from '../interface/stock.interface';
+import { firstValueFrom, ReplaySubject, Subject } from 'rxjs';
 import { WatchList } from '../interface/watchList.interface';
 import { Auth } from '@angular/fire/auth';
 import {  WEB_SOCKET, SERVER_URL } from '../../environments/environment';
@@ -12,7 +12,7 @@ import {  WEB_SOCKET, SERVER_URL } from '../../environments/environment';
 })
 export class StockService {
   nifty50Data: IStockData[] = [];
-  liveData: Subject<ITickerData> = new Subject<ITickerData>();
+  liveData$: Subject<ITickerData|IClosed> = new Subject<ITickerData|IClosed>();
   dataMap: Map<number, ITickerData> = new Map<number, ITickerData>();
   ws!: WebSocket;
   isTockensLoaded: boolean = false;
@@ -65,7 +65,7 @@ export class StockService {
 
       this.ws.onclose = (event) => {
         console.warn('WebSocket closed:', event);
-        this.handleReconnect(nifty50InstrumentalTokens);
+        // this.handleReconnect(nifty50InstrumentalTokens);
       };
 
       this.ws.onmessage = (event) => {
@@ -82,7 +82,7 @@ export class StockService {
       };
     } catch (error) {
       console.error('Error establishing WebSocket connection:', error);
-      this.handleReconnect(nifty50InstrumentalTokens);
+      // this.handleReconnect(nifty50InstrumentalTokens);
     }
   }
 
@@ -107,13 +107,16 @@ export class StockService {
   }
 
   private flushBuffer() {
-    if (this.messageBuffer.length > 0) {
-      this.messageBuffer.forEach(stock => this.liveData.next(stock));
+     if (this.messageBuffer.length > 0) {
+      this.messageBuffer.forEach(stock => this.liveData$.next(stock));
       this.messageBuffer = [];
     }
   }
 
   async connect(nifty50InstrumentalTokens: string[]) {
+    if (this.liveData$?.closed || !this.liveData$) {
+            this.liveData$ =new ReplaySubject<ITickerData|IClosed>(1);
+    }
     await this.connectWebSocket(nifty50InstrumentalTokens);
   }
 

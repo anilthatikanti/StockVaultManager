@@ -57,7 +57,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   @ViewChild('chartContainer') chartContainerRef!: ElementRef;
   
   nifty50: IStockData[] = [];
-  liveData: ITickerData[] = [];
+  liveData$: ITickerData[] = [];
   innerHeight: number = window.innerHeight;
   innerWidth: number = window.innerWidth;
   watchListData: WatchList[] = watchListData;
@@ -139,31 +139,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       await this.stockService.loadNifty50Tokens();
       this.nifty50 = this.stockService.nifty50Data;
       this.selectedStock = this.nifty50[0];
-      
-      // Initialize WebSocket connection
-      this.loadingMessage = 'Connecting to live data...';
-      const symbols = this.nifty50.map((data: IStockData) => data.symbol);
-      await this.stockService.connect(symbols);
-      
-      // Subscribe to live data
-      this.stockService.liveData.subscribe((data: ITickerData|any) => {
-        if(data.type === "closed"){ 
-          this.isMarketClosed = true;
-          this.loadingMessage = data.error
-          return;
-        }
-        this.isMarketClosed = false;
-        const index = this.liveData.findIndex((stock) => stock.id === data.id);
-        if (index === -1) {
-          this.liveData.push(data);
-        } else {
-          this.liveData[index] = data;
-        }
-        if (this.isChartInitialized && this.ChartAreaSeries) {
-          this.upDateChartData(data);
-        }
-      });
-
+      await this.initializeWebSocket();
       this.isStocksLoading = false;
       this.isLoading = false;
     } catch (error) {
@@ -180,6 +156,33 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     // Initialize chart after view is ready
     this.initializeChart();
+  }
+
+
+ async initializeWebSocket() {
+     // Initialize WebSocket connection
+      this.loadingMessage = 'Connecting to live data...';
+      const symbols = this.nifty50.map((data: IStockData) => data.symbol);
+      await this.stockService.connect(symbols);
+      
+      // Subscribe to live data
+      this.stockService.liveData$.subscribe((data: ITickerData|any) => {
+        if(data.type === "closed"){ 
+          this.isMarketClosed = true;
+          this.loadingMessage = data.message;
+          return;
+        }
+        this.isMarketClosed = false;
+        const index = this.liveData$.findIndex((stock) => stock.id === data.id);
+        if (index === -1) {
+          this.liveData$.push(data);
+        } else {
+          this.liveData$[index] = data;
+        }
+        if (this.isChartInitialized && this.ChartAreaSeries) {
+          this.upDateChartData(data);
+        }
+      });
   }
 
   private async initializeChart() {
@@ -291,7 +294,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
    getLiveItem(token: string, type?: string) {
     if (!this.nifty50.length) return 0;
-    const stock = this.liveData.find((item: ITickerData) => item.id === token);
+    const stock = this.liveData$.find((item: ITickerData) => item.id === token);
     if (!stock) return 0;
 
     switch (type) {
@@ -546,8 +549,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (this.chartUpdateTimeout) {
       clearTimeout(this.chartUpdateTimeout);
     }
-    this.stockService.liveData.unsubscribe();
     this.stockService.disconnect();
+    this.stockService.liveData$.unsubscribe();
     if (this.chart) {
       this.chart.remove();
     }
