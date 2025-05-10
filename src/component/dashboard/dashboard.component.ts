@@ -104,7 +104,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   isStocksLoading: boolean = true;
   loadingMessage: string = 'Loading dashboard...';
   private isChartInitialized: boolean = false;
-  private shouldInitializeChart: boolean = false;
   isChartReady: boolean = false;
   isMarketClosed = false;
 
