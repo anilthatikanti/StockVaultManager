@@ -45,7 +45,7 @@
                   {{
                     getLiveItem(selectedStock.symbol, "current")
                       ? getLiveItem(selectedStock.symbol, "current").toFixed(2)
-                      : "-"
+                      : selectedStock.current_price
                   }}
                 </h2>
 
