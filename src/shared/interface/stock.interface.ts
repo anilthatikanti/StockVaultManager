@@ -45,3 +45,9 @@ export interface ITickerData {
   change: number;
   priceHint: number;
 }
+
+export interface IClosed {
+      action: string;
+      message: string;
+      type: string;
+    }
