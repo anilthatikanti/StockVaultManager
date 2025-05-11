@@ -1,4 +1,11 @@
-import { AfterViewInit, Component, ElementRef, HostListener, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { MenuItem, MessageService } from 'primeng/api';
@@ -28,7 +35,7 @@ import {
   IHistoryData,
   HistoryData,
 } from '../../shared/interface/response.interface';
-import {SERVER_URL } from '../../environments/environment';
+import { SERVER_URL } from '../../environments/environment';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 @Component({
   selector: 'app-dashboard',
@@ -47,7 +54,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
     ToastModule,
     FloatLabelModule,
     InputTextModule,
-      ProgressSpinnerModule,
+    ProgressSpinnerModule,
     DialogModule,
   ],
   templateUrl: './dashboard.component.html',
@@ -55,7 +62,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
   @ViewChild('chartContainer') chartContainerRef!: ElementRef;
-  
+
   nifty50: IStockData[] = [];
   liveData$: ITickerData[] = [];
   innerHeight: number = window.innerHeight;
@@ -67,21 +74,21 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   editWatchList?: WatchList;
   createWatchListDialogVisible: boolean = false;
   createWatchListName: string = '';
-  selectedStock: IStockData =  {
-    "symbol": "RELIANCE.NS",
-    "name": "RELIANCE INDUSTRIES LTD",
-    "current_price": 0,
-    "market_cap": 0,
-    "sector": "Energy",
-    "industry": "Oil & Gas Refining & Marketing",
-    "ohlc": {
-        "Open": 0,
-        "High": 0,
-        "Low":0,
-        "Close": 0,
-        "Volume": 0
-    }
-}
+  selectedStock: IStockData = {
+    symbol: 'RELIANCE.NS',
+    name: 'RELIANCE INDUSTRIES LTD',
+    current_price: 0,
+    market_cap: 0,
+    sector: 'Energy',
+    industry: 'Oil & Gas Refining & Marketing',
+    ohlc: {
+      Open: 0,
+      High: 0,
+      Low: 0,
+      Close: 0,
+      Volume: 0,
+    },
+  };
   chartTimeFrame = '5minute';
   ChartAreaSeries!: any;
   chart: any;
@@ -112,7 +119,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.innerHeight = window.innerHeight;
     this.innerWidth = window.innerWidth;
     if (this.chart) {
-      this.chart.resize(this.innerWidth - 250, this.innerHeight - 680);
+      this.chart.resize( this.innerWidth-610,this.innerHeight-278)
     }
   }
 
@@ -123,8 +130,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ) {
     this.onWindowResize();
     this.searchSubject.pipe(debounceTime(150)).subscribe((value) => {
-      this.nifty50 = this.stockService.nifty50Data.filter(
-        (data: IStockData) => data.name.startsWith(value.trim().toUpperCase())
+      this.nifty50 = this.stockService.nifty50Data.filter((data: IStockData) =>{
+        return data.name.toUpperCase().startsWith(value.trim().toUpperCase())}
       );
     });
   }
@@ -133,14 +140,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     try {
       this.isLoading = true;
       this.loadingMessage = 'Loading Nifty 50 stocks...';
-      
+
       // Load Nifty 50 data first
       await this.stockService.loadNifty50Tokens();
       this.nifty50 = this.stockService.nifty50Data;
       this.selectedStock = this.nifty50[0];
       await this.initializeWebSocket();
       this.isStocksLoading = false;
-      this.isLoading = false;
     } catch (error) {
       console.error('Error initializing dashboard:', error);
       this.messageService.add({
@@ -148,6 +154,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         summary: 'Error',
         detail: 'Failed to initialize dashboard. Please refresh the page.',
       });
+    } finally {
       this.isLoading = false;
     }
   }
@@ -157,38 +164,37 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.initializeChart();
   }
 
+  async initializeWebSocket() {
+    // Initialize WebSocket connection
+    this.loadingMessage = 'Connecting to live data...';
+    const symbols = this.nifty50.map((data: IStockData) => data.symbol);
+    await this.stockService.connect(symbols);
 
- async initializeWebSocket() {
-     // Initialize WebSocket connection
-      this.loadingMessage = 'Connecting to live data...';
-      const symbols = this.nifty50.map((data: IStockData) => data.symbol);
-      await this.stockService.connect(symbols);
-      
-      // Subscribe to live data
-      this.stockService.liveData$.subscribe((data: ITickerData|any) => {
-        if(data.type === "closed"){ 
-          this.isMarketClosed = true;
-          this.loadingMessage = data.message;
-          return;
-        }
-        this.isMarketClosed = false;
-        const index = this.liveData$.findIndex((stock) => stock.id === data.id);
-        if (index === -1) {
-          this.liveData$.push(data);
-        } else {
-          this.liveData$[index] = data;
-        }
-        if (this.isChartInitialized && this.ChartAreaSeries) {
-          this.upDateChartData(data);
-        }
-      });
+    // Subscribe to live data
+    this.stockService.liveData$.subscribe((data: ITickerData | any) => {
+      if (data.type === 'closed') {
+        this.isMarketClosed = true;
+        this.loadingMessage = data.message;
+        return;
+      }
+      this.isMarketClosed = false;
+      const index = this.liveData$.findIndex((stock) => stock.id === data.id);
+      if (index === -1) {
+        this.liveData$.push(data);
+      } else {
+        this.liveData$[index] = data;
+      }
+      if (this.isChartInitialized && this.ChartAreaSeries) {
+        this.upDateChartData(data);
+      }
+    });
   }
 
   private async initializeChart() {
     try {
       this.isChartLoading = true;
       this.isChartReady = false;
-      
+
       // Wait for the chart container to be available
       await new Promise<void>((resolve) => {
         const checkContainer = () => {
@@ -208,16 +214,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       }
 
       // Ensure container has dimensions
-      if (chartContainer.offsetHeight === 0 || chartContainer.offsetWidth === 0) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        if (chartContainer.offsetHeight === 0 || chartContainer.offsetWidth === 0) {
+      if (
+        chartContainer.offsetHeight === 0 ||
+        chartContainer.offsetWidth === 0
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (
+          chartContainer.offsetHeight === 0 ||
+          chartContainer.offsetWidth === 0
+        ) {
           throw new Error('Chart container has no dimensions');
         }
       }
 
       await this.createChart();
       this.isChartInitialized = true;
-      
+
       // Load initial chart data after initialization
       if (this.selectedStock) {
         await this.displayChart(this.selectedStock);
@@ -234,19 +246,36 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.isChartReady = true;
     }
   }
+  getResponsiveChartSize(rem: number = 8) {
+  const vh = window.innerHeight;
+  const vw = window.innerWidth;
+  const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const height = vh - rem * rootFontSize;
+  const width = vw - 100; // tweak as per sidebar/padding
+
+  return { height, width };
+}
+
 
   private async createChart() {
     return new Promise<void>((resolve, reject) => {
       try {
         const chartContainer = document.getElementById('chart-container');
+    
         if (!chartContainer) {
           reject(new Error('Chart container not found'));
           return;
         }
 
+        let {height,width} = this.getResponsiveChartSize()
+        console.log('width', width)
+        console.log('height', height)
+        console.log('this.innerWidth', this.innerWidth)
+        console.log('this.innerHeight', this.innerHeight)
+
         const chartOptions = {
-          height: this.innerHeight - 680<400?400:this.innerHeight - 680,
-          width: this.innerWidth - 300,
+          height: this.innerHeight-278,
+          width: this.innerWidth-610,
           layout: {
             textColor: 'black',
             background: { color: 'white' },
@@ -270,9 +299,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             pressedMouseMove: true,
             horzTouchDrag: true,
             vertTouchDrag: true,
+            
           },
         };
-        
+
         this.chart = createChart(chartContainer, chartOptions);
         this.ChartAreaSeries = this.chart.addAreaSeries({
           lineColor: '#2962FF',
@@ -291,7 +321,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-   getLiveItem(token: string, type?: string) {
+  getLiveItem(token: string, type?: string) {
     if (!this.nifty50.length) return 0;
     const stock = this.liveData$.find((item: ITickerData) => item.id === token);
     if (!stock) return 0;
@@ -304,7 +334,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       case 'current':
         return stock.price ?? 0;
       default:
-        return this.nifty50.find(item => item.symbol === token)?.ohlc?.Close ?? 0;
+        return (
+          this.nifty50.find((item) => item.symbol === token)?.ohlc?.Close ?? 0
+        );
     }
   }
 
@@ -313,8 +345,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       if (watchList._id === watchListItem._id) {
         watchListItem = watchList;
         watchList.stocks = watchList.stocks.filter(
-          (stock: IStockData) =>
-            stock.symbol !== stockItem.symbol
+          (stock: IStockData) => stock.symbol !== stockItem.symbol
         );
       }
       return watchList;
@@ -346,7 +377,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   searchStock(event: any) {
-    // this.searchSubject.next(event.target.value);
+    this.searchSubject.next(event.target.value);
   }
   getWatchListStocksCount() {
     return this.watchListData[this.activeTabViewIndex]?.stocks?.length ?? 0;
@@ -431,8 +462,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             time: Math.floor(new Date(item.Datetime).getTime() / 1000) as Time,
             value: item.Close,
           }));
-        
-        this.selectedChartStatisticData = historyData.payload[historyData.payload.length - 1];
+
+        this.selectedChartStatisticData =
+          historyData.payload[historyData.payload.length - 1];
         this.ChartAreaSeries.setData(this.stockHistoryData);
         this.chart.timeScale().fitContent();
         this.selectedStock = stock;
@@ -473,20 +505,25 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         break;
       default:
         throw new Error('Invalid interval selected');
-      }
+    }
 
-      return {
-        startDate: new Date(startDate).toLocaleString('sv', {
-          timeZone: 'Asia/Kolkata',
-        }),
-        endDate: new Date(currentDate).toLocaleString('sv', {
-          timeZone: 'Asia/Kolkata',
-        }),
-      };
+    return {
+      startDate: new Date(startDate).toLocaleString('sv', {
+        timeZone: 'Asia/Kolkata',
+      }),
+      endDate: new Date(currentDate).toLocaleString('sv', {
+        timeZone: 'Asia/Kolkata',
+      }),
+    };
   }
 
   upDateChartData(data: ITickerData) {
-    if (!this.isChartInitialized || !this.ChartAreaSeries || !this.selectedStock || !this.selectedChartStatisticData) {
+    if (
+      !this.isChartInitialized ||
+      !this.ChartAreaSeries ||
+      !this.selectedStock ||
+      !this.selectedChartStatisticData
+    ) {
       return;
     }
 
@@ -494,7 +531,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       const now = Date.now();
       if (now - this.lastChartUpdate < this.chartUpdateThrottle) {
         clearTimeout(this.chartUpdateTimeout);
-        this.chartUpdateTimeout = setTimeout(() => this.updateChartWithData(data), this.chartUpdateThrottle);
+        this.chartUpdateTimeout = setTimeout(
+          () => this.updateChartWithData(data),
+          this.chartUpdateThrottle
+        );
         return;
       }
       this.updateChartWithData(data);
@@ -503,7 +543,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   private updateChartWithData(data: ITickerData) {
-    if (!this.ChartAreaSeries || !this.selectedChartStatisticData || !this.stockHistoryData) {
+    if (
+      !this.ChartAreaSeries ||
+      !this.selectedChartStatisticData ||
+      !this.stockHistoryData
+    ) {
       return;
     }
 
@@ -530,14 +574,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         };
         this.selectedChartStatisticData.Datetime = add5TimeConvertToAsia;
         this.stockHistoryData.push(object);
-        
+
         if (this.stockHistoryData.length > this.chartDataLimit) {
-          this.stockHistoryData = this.stockHistoryData.slice(-this.chartDataLimit);
+          this.stockHistoryData = this.stockHistoryData.slice(
+            -this.chartDataLimit
+          );
         }
       } else {
-        this.stockHistoryData[this.stockHistoryData.length - 1].value = data.price;
+        this.stockHistoryData[this.stockHistoryData.length - 1].value =
+          data.price;
       }
-      
+
       this.ChartAreaSeries.setData(this.stockHistoryData);
     } catch (error) {
       console.error('Error updating chart data:', error);
