@@ -77,15 +77,14 @@ export class VerifyEmailComponent implements OnInit {
       const interval = setInterval(async () => {
         const user = this.firebaseAuth.currentUser;
         if (user) {
+          await user.reload();
           await user.getIdTokenResult(true);
           if (user.emailVerified) {
             clearInterval(interval);
             const data = await firstValueFrom(
               this.http.post('http://localhost:3000/user/create-user', { email: user.email })
             );
-
-            console.log('data', data);
-            window.location.href = `${this.router.url ?? WEB_APP_URL}`;
+            window.location.href = this.router.url || WEB_APP_URL;
           }
         }
       }, 1000);

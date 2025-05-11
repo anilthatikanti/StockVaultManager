@@ -3,7 +3,7 @@
 @defer (when !tableLoading) {
 <div class="h-full flex flex-column gap-3">
   <div class="flex gap-2 align-items-center">
-    @if(currentFolder?.parentFolderId){
+    @if(currentFolder.parentFolderId){
 
     <i
       (click)="BackToParent(currentFolder)"
@@ -11,7 +11,7 @@
       style="font-size: 15px; cursor: pointer"
     ></i>
     }
-    <h3 class="text-primary m-0 font-medium">{{ currentFolder?.name }}</h3>
+    <h3 class="text-primary m-0 font-medium">{{ currentFolder.name }}</h3>
   </div>
 
   @if(tableData.length > 0||searchValue){
