@@ -77,7 +77,7 @@ export class VerifyEmailComponent implements OnInit {
       const interval = setInterval(async () => {
         const user = this.firebaseAuth.currentUser;
         if (user) {
-          user.reload();
+          await user.getIdTokenResult(true);
           if (user.emailVerified) {
             clearInterval(interval);
             const data = await firstValueFrom(
