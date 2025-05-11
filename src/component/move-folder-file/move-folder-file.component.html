@@ -8,7 +8,7 @@
   <h5>Move Folder <span style="color: rgb(72, 108, 226);font-weight: 700;">{{ moveItem.fileUrl ? moveItem?.file.filename : moveItem?.name }}</span></h5>
 </ng-template>
   <div class="flex gap-2 align-items-center">
-    @if(currentFolder?.parentFolderId){
+    @if(currentFolder.parentFolderId){
 
     <i
       (click)="BackToParent()"
@@ -16,7 +16,7 @@
       style="font-size: 15px; cursor: pointer"
     ></i>
     }
-    <h3 class="text-primary m-0 font-medium">{{ currentFolder?.name }}</h3>
+    <h3 class="text-primary m-0 font-medium">{{ currentFolder.name }}</h3>
   </div>
   <div class="h-24rem py-2">
     <p-table [value]="tableData" loadingIcon="pi pi-spin pi-spinner" [loading]="tableLoading" [style]="{'height': '100%'}" >

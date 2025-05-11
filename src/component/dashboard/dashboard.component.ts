@@ -246,16 +246,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.isChartReady = true;
     }
   }
-  getResponsiveChartSize(rem: number = 8) {
-  const vh = window.innerHeight;
-  const vw = window.innerWidth;
-  const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  const height = vh - rem * rootFontSize;
-  const width = vw - 100; // tweak as per sidebar/padding
-
-  return { height, width };
-}
-
 
   private async createChart() {
     return new Promise<void>((resolve, reject) => {
@@ -266,13 +256,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           reject(new Error('Chart container not found'));
           return;
         }
-
-        let {height,width} = this.getResponsiveChartSize()
-        console.log('width', width)
-        console.log('height', height)
-        console.log('this.innerWidth', this.innerWidth)
-        console.log('this.innerHeight', this.innerHeight)
-
         const chartOptions = {
           height: this.innerHeight-278,
           width: this.innerWidth-610,
