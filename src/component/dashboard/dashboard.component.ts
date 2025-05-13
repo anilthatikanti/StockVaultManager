@@ -315,7 +315,7 @@ getFormattedChange(symbol: string): string {
   else if(data.price<this.selectedChartStatisticData.Low) this.selectedChartStatisticData.Low = data.price;
   const ch = (data?.change??0).toFixed(2);
   const chp = (data?.changePercent??0).toFixed(2);
-  return `${data?.change >= 0 ? '+ ' : '-'}${ch} (${data?.changePercent >= 0 ? '+ ' : '-'}${chp}%)`;
+  return `${data?.change >= 0 ? '+ ' : ''}${ch} (${data?.changePercent >= 0 ? '+ ' : ''}${chp}%)`;
 }
 
 
