@@ -1,8 +1,19 @@
 <div class="h-screen flex flex-column">
   <div
-    class="h-3rem w-full bg-white px-3 py-2 nav-shadow flex justify-content-between align-items-center"
+    class="h-3rem w-full bg-white pl-4 pr-3 nav-shadow flex justify-content-between align-items-center"
   >
-    <img height="100" width="100" src="assets/images/logos/stocx.png" />
+    <img
+      class="lg:hidden xl:hidden 2xl:hidden inline"
+      height="35"
+      width="35"
+      src="assets/images/logos/favicon.ico.png"
+    />
+    <img
+      height="40"
+      class="lg:inline xl:inline 2xl:inline hidden"
+      width="100"
+      src="assets/images/logos/stocx_app_main_logo.png"
+    />
     <div class="flex align-items-center gap-3">
       <!-- notification -->
       <i class="pi pi-bell"></i>
@@ -19,24 +30,29 @@
   </div>
 
   <div class="flex-grow-1">
-    <div class="flex h-full" >
+    <div class="flex h-full">
       <div
-        class="w-18rem sidebar-shadow flex flex-column align-items-center h-full p-3"
+        style="width: 96px"
+        class="lg:w-18rem xl:w-18rem 2xl:w-18rem sidebar-shadow flex flex-column align-items-center h-full p-3"
       >
         <p-menu [model]="items" class="w-full">
           <ng-template pTemplate="item" let-item>
             <a
               pRipple
               class="flex align-items-center p-menuitem-link mb-2"
-              [ngClass]="{'active-route': isLinkActive(item.routerLink)}"
+              [ngClass]="{ 'active-route': isLinkActive(item.routerLink) }"
               [routerLink]="item.routerLink"
             >
-              <span [class]="item.icon"></span>
-              <span class="ml-2">{{ item.label }}</span>
+              <span [class]="item.icon" class="py-2 lg:py-0"></span>
+              <span
+                style="margin-top: 0.15rem"
+                class="ml-2 text-center hidden lg:inline-block xl:inline-block 2xl:inline-block"
+              >
+                {{ item.label }}
+              </span>
             </a>
           </ng-template>
         </p-menu>
-
       </div>
 
       <div class="w-full p-3" style="background-color: #f7f7f7">
