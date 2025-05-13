@@ -13,8 +13,6 @@ export interface IStockData {
   name: string;
   current_price: number;
   market_cap: number;
-  sector: string;
-  industry: string;
   ohlc:{
     Open: number;
     High: number;

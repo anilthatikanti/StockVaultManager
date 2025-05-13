@@ -61,10 +61,10 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-  @ViewChild('chartContainer') chartContainerRef!: ElementRef;
+ @ViewChild('chartContainer') chartContainerRef: ElementRef | undefined;
 
   nifty50: IStockData[] = [];
-  liveData$: ITickerData[] = [];
+  liveDataMap: { [symbol: string]: ITickerData } = {};
   innerHeight: number = window.innerHeight;
   innerWidth: number = window.innerWidth;
   watchListData: WatchList[] = watchListData;
@@ -75,12 +75,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   createWatchListDialogVisible: boolean = false;
   createWatchListName: string = '';
   selectedStock: IStockData = {
-    symbol: 'RELIANCE.NS',
-    name: 'RELIANCE INDUSTRIES LTD',
+    symbol: 'ADANIENT.NS',
+    name: 'Adani Enterprises Limited',
     current_price: 0,
     market_cap: 0,
-    sector: 'Energy',
-    industry: 'Oil & Gas Refining & Marketing',
     ohlc: {
       Open: 0,
       High: 0,
@@ -119,7 +117,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.innerHeight = window.innerHeight;
     this.innerWidth = window.innerWidth;
     if (this.chart) {
-      this.chart.resize( this.innerWidth-610,this.innerHeight-278)
+      const { height, width } = this.getResponsiveChartSize(8);
+      this.chart.resize( width,height - 275);
     }
   }
 
@@ -177,13 +176,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.loadingMessage = data.message;
         return;
       }
+      this.liveDataMap[data.id] = data;
       this.isMarketClosed = false;
-      const index = this.liveData$.findIndex((stock) => stock.id === data.id);
-      if (index === -1) {
-        this.liveData$.push(data);
-      } else {
-        this.liveData$[index] = data;
-      }
       if (this.isChartInitialized && this.ChartAreaSeries) {
         this.upDateChartData(data);
       }
@@ -194,34 +188,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     try {
       this.isChartLoading = true;
       this.isChartReady = false;
-
-      // Wait for the chart container to be available
-      await new Promise<void>((resolve) => {
-        const checkContainer = () => {
-          const container = document.getElementById('chart-container');
-          if (container) {
-            resolve();
-          } else {
-            setTimeout(checkContainer, 100);
-          }
-        };
-        checkContainer();
-      });
-
-      const chartContainer = document.getElementById('chart-container');
-      if (!chartContainer) {
+      if (!this.chartContainerRef) {
         throw new Error('Chart container not found');
       }
 
       // Ensure container has dimensions
       if (
-        chartContainer.offsetHeight === 0 ||
-        chartContainer.offsetWidth === 0
+        this.chartContainerRef.nativeElement.offsetHeight === 0 ||
+        this.chartContainerRef.nativeElement.offsetWidth === 0
       ) {
         await new Promise((resolve) => setTimeout(resolve, 100));
         if (
-          chartContainer.offsetHeight === 0 ||
-          chartContainer.offsetWidth === 0
+          this.chartContainerRef.nativeElement.offsetHeight === 0 ||
+          this.chartContainerRef.nativeElement.offsetWidth === 0
         ) {
           throw new Error('Chart container has no dimensions');
         }
@@ -247,18 +226,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
   }
 
+  getResponsiveChartSize(rem: number = 8) {
+    const vh = window.innerHeight;
+  const vw = parseFloat(getComputedStyle(this.chartContainerRef?.nativeElement).width);
+  const height = vh;
+  const width = vw ; // tweak as per sidebar/padding
+
+  return { height, width };
+}
+
   private async createChart() {
     return new Promise<void>((resolve, reject) => {
       try {
-        const chartContainer = document.getElementById('chart-container');
-    
-        if (!chartContainer) {
+        if (!this.chartContainerRef) {
           reject(new Error('Chart container not found'));
           return;
         }
+        const { height, width } = this.getResponsiveChartSize(8);
+
         const chartOptions = {
-          height: this.innerHeight-278,
-          width: this.innerWidth-610,
+          // width:this.innerWidth - 610,height: this.innerHeight - 278,
+          width: width,
+          height: height - 275,
           layout: {
             textColor: 'black',
             background: { color: 'white' },
@@ -282,11 +271,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             pressedMouseMove: true,
             horzTouchDrag: true,
             vertTouchDrag: true,
-            
           },
         };
 
-        this.chart = createChart(chartContainer, chartOptions);
+        this.chart = createChart(this.chartContainerRef.nativeElement, chartOptions);
         this.ChartAreaSeries = this.chart.addAreaSeries({
           lineColor: '#2962FF',
           topColor: '#2962FF',
@@ -304,24 +292,32 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  getLiveItem(token: string, type?: string) {
-    if (!this.nifty50.length) return 0;
-    const stock = this.liveData$.find((item: ITickerData) => item.id === token);
-    if (!stock) return 0;
+//   getLiveItem(token: string, type?: string): number {
+//   const stock = this.liveDataMap[token];
+//   if (!stock) return 0;
 
-    switch (type) {
-      case 'change':
-        return stock.change ?? 0;
-      case 'percentage':
-        return stock.changePercent ?? 0;
-      case 'current':
-        return stock.price ?? 0;
-      default:
-        return (
-          this.nifty50.find((item) => item.symbol === token)?.ohlc?.Close ?? 0
-        );
-    }
-  }
+//   switch (type) {
+//     case 'change':
+//       return stock.change ?? 0;
+//     case 'percentage':
+//       return stock.changePercent ?? 0;
+//     case 'current':
+//       return stock.price ?? 0;
+//     default:
+//       return this.nifty50.find((item) => item.symbol === token)?.ohlc?.Close ?? 0;
+//   }
+// }
+
+getFormattedChange(symbol: string): string {
+  const data = this.liveDataMap[symbol];
+  if (!data) return '0.00 (0.00%)';
+  else if(data.price>this.selectedChartStatisticData.High) this.selectedChartStatisticData.High = data.price;
+  else if(data.price<this.selectedChartStatisticData.Low) this.selectedChartStatisticData.Low = data.price;
+  const ch = (data?.change??0).toFixed(2);
+  const chp = (data?.changePercent??0).toFixed(2);
+  return `${data?.change >= 0 ? '+ ' : '-'}${ch} (${data?.changePercent >= 0 ? '+ ' : '-'}${chp}%)`;
+}
+
 
   deleteWatchListItem(watchListItem: WatchList, stockItem: IStockData) {
     this.watchListData.forEach((watchList: WatchList) => {
@@ -543,13 +539,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         timeZone: 'Asia/Kolkata',
       });
       const now = new Date();
+      let sameValue = this.stockHistoryData[this.stockHistoryData.length - 1].value!==data.price;
+      let sameTime =(Date.parse(add5TimeConvertToAsia) / 1000) !==this.stockHistoryData[this.stockHistoryData.length - 1].time
       const isWithinRestrictedTime =
         (now.getHours() >= 15 && now.getMinutes() >= 30) ||
         (now.getHours() < 9 && now.getMinutes() > 15);
 
       if (
         new Date().getTime() > new Date(add5Time).getTime() &&
-        isWithinRestrictedTime
+        isWithinRestrictedTime && sameValue && sameTime
       ) {
         const object: { time: Time; value: number } = {
           time: (Date.parse(add5TimeConvertToAsia) / 1000) as Time,
