@@ -5,14 +5,16 @@ import { IClosed, IStockData, ITickerData } from '../interface/stock.interface';
 import { firstValueFrom, ReplaySubject, Subject } from 'rxjs';
 import { WatchList } from '../interface/watchList.interface';
 import { Auth } from '@angular/fire/auth';
-import {  WEB_SOCKET, SERVER_URL } from '../../environments/environment';
+import { WEB_SOCKET, SERVER_URL } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StockService {
   nifty50Data: IStockData[] = [];
-  liveData$: Subject<ITickerData|IClosed> = new Subject<ITickerData|IClosed>();
+  liveData$: Subject<ITickerData | IClosed> = new Subject<
+    ITickerData | IClosed
+  >();
   dataMap: Map<number, ITickerData> = new Map<number, ITickerData>();
   ws!: WebSocket;
   isTockensLoaded: boolean = false;
@@ -45,17 +47,19 @@ export class StockService {
       if (!jwtToken) {
         throw new Error('No authentication token available');
       }
-
-      this.ws = new WebSocket(WEB_SOCKET, jwtToken);
-      
-      this.ws.onopen = () => {
-        console.log('WebSocket connected');
+      if (!this.ws) {
+        this.ws = new WebSocket(WEB_SOCKET, jwtToken);
+      }
+        this.ws.onopen = () => {
+          console.log('WebSocket connected');
         this.reconnectAttempts = 0;
-        this.ws.send(JSON.stringify({
-          "action": "subscribe",
-          "variables": nifty50InstrumentalTokens,
-          "type": "ltp"
-        }));
+        this.ws.send(
+          JSON.stringify({
+            action: 'subscribe',
+            variables: nifty50InstrumentalTokens,
+            type: 'ltp',
+          })
+        );
       };
 
       this.ws.onerror = (error) => {
@@ -89,16 +93,21 @@ export class StockService {
   private handleReconnect(tokens: string[]) {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-      setTimeout(() => this.connectWebSocket(tokens), this.reconnectDelay * this.reconnectAttempts);
+      console.log(
+        `Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`
+      );
+      setTimeout(
+        () => this.connectWebSocket(tokens),
+        this.reconnectDelay * this.reconnectAttempts
+      );
     } else {
       console.error('Max reconnection attempts reached');
     }
   }
 
   private bufferMessages(messages: ITickerData[]) {
-    this.messageBuffer.push(...messages);
-    
+    this.messageBuffer = [...this.messageBuffer, ...messages];
+
     if (this.messageBuffer.length >= this.bufferSize) {
       this.flushBuffer();
     } else {
@@ -107,15 +116,15 @@ export class StockService {
   }
 
   private flushBuffer() {
-     if (this.messageBuffer.length > 0) {
-      this.messageBuffer.forEach(stock => this.liveData$.next(stock));
+    if (this.messageBuffer.length > 0) {
+      this.messageBuffer.forEach((stock) => this.liveData$.next(stock));
       this.messageBuffer = [];
     }
   }
 
   async connect(nifty50InstrumentalTokens: string[]) {
     if (this.liveData$?.closed || !this.liveData$) {
-            this.liveData$ =new ReplaySubject<ITickerData|IClosed>(1);
+      this.liveData$ = new ReplaySubject<ITickerData | IClosed>(1);
     }
     await this.connectWebSocket(nifty50InstrumentalTokens);
   }
@@ -123,12 +132,10 @@ export class StockService {
   disconnect() {
     if (this.ws) {
       console.log('🚫 Closing WebSocket...');
-      this.ws.close();  // ✅ Properly close WebSocket   // ✅ Prevent reconnection issues
+      this.ws.close(); // ✅ Properly close WebSocket   // ✅ Prevent reconnection issues
     }
   }
 }
-
-
 
 export const watchListData: WatchList[] = [
   {
