@@ -67,7 +67,7 @@
             style="font-size: 100%"
           ></i>
         </td>
-        <td [style]="{'cursor':rowData.file? 'pointer':'no-drop'}" (click)="rowData.file ? image = rowData.file : ''">
+        <td [style]="{'cursor':rowData.file? 'pointer':'no-drop'}" (click)="rowData.file ? image = rowData : ''">
           {{ rowData?.file ? rowData.file.fileName : rowData.name }}
         </td>
         <td>{{ rowData?.file ? "File" : "Folder" }}</td>
@@ -145,9 +145,10 @@
 
 
 <p-dialog
-  [header]="image?.fileName"
+  [header]="image?.file.fileName"
+  [closable]="false"
   [modal]="true"
-  [visible]="!!image?.fileName"
+  [visible]="!!image?.file?.fileName"
   [style]="{ width: 'fit-content', height: 'fit-content' }"
 >
   @if(image){
@@ -158,6 +159,6 @@
   />
   }
   <div class="flex justify-content-end mt-2 sticky bottom-0 right-0">
-    <p-button label="Cancel" severity="secondary" (click)="image = ''" />
+    <p-button label="Cancel" severity="secondary" (click)="image = null" />
   </div>
 </p-dialog>
