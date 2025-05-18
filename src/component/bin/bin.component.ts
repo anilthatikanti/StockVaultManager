@@ -105,12 +105,12 @@ export class BinComponent implements OnInit {
             const res: Response = await firstValueFrom(
               this.http.get<Response>(apiUrl)
             );
-
             if (res?.success) {
               this.currentFolder = res.data.currentFolder;
-              this.tableData = res.data.data.filter(
-                (item: any) => !item.uploadedAt
-              );
+              this.tableData = res.data.data
+              // .filter(
+              //   (item: any) => item.uploadedAt !== null
+              // );
             }
           } catch (error) {
             console.error('API Error:', error);
