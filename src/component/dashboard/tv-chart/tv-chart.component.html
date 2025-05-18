@@ -1,0 +1,122 @@
+<div class="w-full h-full">
+  <div *ngIf="isChartLoading && !isParentLoading" class="chart-loader">
+    <p-progressSpinner
+      [style]="{ width: '30px', height: '30px' }"
+      strokeWidth="8"
+      fill="var(--surface-ground)"
+      animationDuration=".5s"
+    ></p-progressSpinner>
+    <!-- Chart Loading Spinner -->
+  </div>
+  <p-card
+    [style]="{
+      height: 'calc(100vh - 7.1rem)',
+      overflow: 'hidden',
+      border: ' solid 1px #e6e9ed',
+      'box-shadow': 'unset'
+    }"
+    class="w-full grow-1"
+  >
+    <ng-template pTemplate="header">
+      <div class="h-full">
+        <div
+          class="p-3 w-full h-full flex justify-content-between align-items-center"
+          [style]="{ 'background-color': '#E6EEF5' }"
+        >
+          <h5 class="text-lg font-medium">
+            {{ selectedStock.name }}
+          </h5>
+          <div class="flex align-items-center gap-2">
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-clock"> </i>
+              <p-dropdown
+                [options]="timeIntervalOptions"
+                [(ngModel)]="interval"
+                optionLabel="name"
+                (ngModelChange)="displayChart(selectedStock)"
+              />
+            </div>
+            <div class="flex align-items-center gap-2">
+              <i class="pi pi-calendar"> </i>
+              <p-dropdown
+                [options]="timePeriodOptions"
+                [(ngModel)]="timePeriod"
+                optionLabel="name"
+                (ngModelChange)="displayChart(selectedStock)"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          class="h-full w-full p-3 flex justify-content-between"
+          *ngIf="selectedStock.current_price"
+        >
+          <div class="h-full w-full flex flex-column justify-content-center">
+            <h2 class="font-medium text-3xl">
+              {{
+                liveDataMap[selectedStock.symbol]
+                  ? liveDataMap[selectedStock.symbol].price.toFixed(2)
+                  : selectedStock.current_price
+              }}
+            </h2>
+
+            <p
+              [ngStyle]="{
+                color:
+                  (liveDataMap[selectedStock.symbol]?.change || 0) < 0
+                    ? 'tomato'
+                    : 'green'
+              }"
+            >
+              {{ getFormattedChange(selectedStock.symbol) }}
+            </p>
+          </div>
+          @if(selectedChartStatisticData){
+
+          <div class="h-full w-full flex gap-4">
+            <div class="h-full w-full">
+              <p class="font-sm" [style]="{ color: '#a4acba' }">Open</p>
+              <p class="font-semibold">
+                {{ selectedChartStatisticData.Open.toFixed(2) }}
+                <!-- {{selectedChartStatisticData|json}} -->
+              </p>
+            </div>
+            <div class="h-full w-full">
+              <p class="font-sm" [style]="{ color: '#a4acba' }">Close</p>
+              <p class="font-semibold">
+                {{ selectedChartStatisticData.Close.toFixed(2) }}
+              </p>
+            </div>
+            <div class="h-full w-full">
+              <p class="font-sm" [style]="{ color: '#a4acba' }">Low</p>
+              <p class="font-semibold">
+                {{ selectedChartStatisticData.Low.toFixed(2) }}
+              </p>
+            </div>
+            <div class="h-full w-full">
+              <p class="font-sm" [style]="{ color: '#a4acba' }">High</p>
+              <p class="font-semibold">
+                {{ selectedChartStatisticData.High.toFixed(2) }}
+              </p>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+    </ng-template>
+    <ng-template pTemplate="content">
+      <div
+        class="chart-wrapper w-full h-full"
+        [style]="{ position: 'relative' }"
+      >
+        <!-- Chart Container -->
+        <div
+          #chartContainer
+          id="chart-container"
+          class="absolute bottom-0 right-0 w-full h-full"
+          style="height: 100%; width: 100%"
+        ></div>
+      </div>
+    </ng-template>
+  </p-card>
+</div>
