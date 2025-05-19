@@ -47,8 +47,7 @@
 
   <div class="flex justify-content-end  gap-2">
     <p-button label="Cancel" severity="secondary" (click)="cancelMoveFn()" />
-    <p-button label="Move Here" (onClick)="moveItemFn()"  [disabled]="checkFolder()" 
- (click)="(moveItem)" />
+    <p-button label="Move Here" [loading]="moveBtnLoading" (onClick)="moveItemFn()"  [disabled]="isSameParentFolder"  />
   </div>
   
 </p-dialog>

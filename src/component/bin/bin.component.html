@@ -27,7 +27,9 @@
         type="button"
         label="Restore All"
         [style]="{ width: '100%', padding: '7px', 'font-size': '12px' }"
-      (onClick)="restoreAll()"
+        (onClick)="restoreAll()"
+        [disabled]="!tableData.length "
+        [loading]=" restoreAllBtnLoading"
         icon="pi pi-undo"
       />
       <p-button
@@ -36,7 +38,9 @@
         label="Delete All"
         [disabled]="!tableData.length"
         [style]="{ width: '100%', padding: '7px', 'font-size': '12px' }"
-       (onClick)="permanentDeleteAll()"
+        (onClick)="permanentDeleteAll()"
+        [loading]="deleteAllBtnLoading"
+        [disabled]="!tableData.length"
         icon="pi pi-trash"
       />
     </div>
@@ -46,7 +50,7 @@
     [value]="tableData"
     loadingIcon="pi pi-spin pi-spinner"
     [loading]="tableLoading"
-    [style]="{'height': '100%'}"
+    [style]="{ height: '100%' }"
   >
     <ng-template pTemplate="header">
       <tr>
@@ -67,7 +71,10 @@
             style="font-size: 100%"
           ></i>
         </td>
-        <td [style]="{'cursor':rowData.file? 'pointer':'no-drop'}" (click)="rowData.file ? image = rowData : ''">
+        <td
+          [style]="{ cursor: rowData.file ? 'pointer' : 'no-drop' }"
+          (click)="rowData.file ? (image = rowData) : ''"
+        >
           {{ rowData?.file ? rowData.file.fileName : rowData.name }}
         </td>
         <td>{{ rowData?.file ? "File" : "Folder" }}</td>
@@ -88,22 +95,29 @@
         </td>
         <td>
           <div class="flex gap-3 align-items-center">
-            <i
+            <p-button
+              [link]="true"
               pTooltip="Restore"
-              class="pi pi-undo cursor-pointer"
-              style="font-size: 100%; color: #3B82F6;"
-              (click)="
-                rowData?.file ? restoreFileFn(rowData) : restoreFolderFn(rowData)
+              icon="pi pi-undo"
+              [style]="{ 'font-size': '100%', color: '#3B82F6' }"
+              (onClick)="
+                rowData?.file
+                  ? restoreFileFn(rowData)
+                  : restoreFolderFn(rowData)
               "
-            ></i>
-            <i
-              pTooltip="Delete"
-              class="pi pi-trash cursor-pointer"
-              style="font-size: 100%; color: #f95557"
-              (click)="
+              [loading]="rowData._id === restoreBtnLoadingId"
+            />
+
+            <p-button
+              [link]="true"
+              icon="pi pi-trash"
+              (onClick)="
                 rowData?.file ? deleteFileFn(rowData) : deleteFolderFn(rowData)
               "
-            ></i>
+              [style]="{ 'font-size': '100%', color: '#f95557' }"
+              pTooltip="Delete"
+              [loading]="rowData._id === deleteBtnLoadingId"
+            />
           </div>
         </td>
       </tr>
@@ -143,7 +157,6 @@
 <p>Failed to load large component.</p>
 }
 
-
 <p-dialog
   [header]="image?.file.fileName"
   [closable]="false"
@@ -155,7 +168,7 @@
   <img
     [src]="image?.fileUrl"
     alt="Folder Image"
-    style="height: 50vh; width: 50vw;object-fit: contain;"
+    style="height: 50vh; width: 50vw; object-fit: contain"
   />
   }
   <div class="flex justify-content-end mt-2 sticky bottom-0 right-0">

@@ -44,7 +44,7 @@
       </div>
       <div class="flex gap-2">
         <p-fileUpload
-        #fu
+          #fu
           mode="basic"
           [style]="{ width: '100%', padding: '7px', 'font-size': '12px' }"
           chooseLabel="File"
@@ -53,14 +53,12 @@
           [disabled]="uploadFileBtnLoading"
           chooseIcon="pi pi-file-arrow-up"
           accept="image/*"
-          (onSelect)="uploadFile($event,fu)"
-          />
-         
+          (onSelect)="uploadFile($event, fu)"
+        />
 
         <p-button
           class="w-fit text-xs"
           type="button"
-          [loading]="createFolderBtnLoading"
           [disabled]="createFolderBtnLoading"
           (click)="createFolderModelOpen = true"
           [style]="{ width: '100%', padding: '7px', 'font-size': '12px' }"
@@ -70,7 +68,11 @@
       </div>
     </div>
     @if(tableData.length){
-    <p-table [value]="tableData" loadingIcon="pi pi-spin pi-spinner" [loading]="tableLoading">
+    <p-table
+      [value]="tableData"
+      loadingIcon="pi pi-spin pi-spinner"
+      [loading]="tableLoading"
+    >
       <ng-template pTemplate="header">
         <tr>
           <th>#</th>
@@ -108,7 +110,11 @@
           </td>
           <td>{{ rowData.updatedAt | date : "medium" }}</td>
           <td>
-            {{ rowData.file ? formatBytes(rowData.file.size) : (rowData.count ?? 0) + " Items" }}
+            {{
+              rowData.file
+                ? formatBytes(rowData.file.size)
+                : (rowData.count ?? 0) + " Items"
+            }}
           </td>
           <td>
             <div class="flex gap-3 align-items-center">
@@ -116,26 +122,36 @@
                 pTooltip="Edit"
                 class="pi pi-pencil"
                 style="font-size: 90%; cursor: pointer"
-                (click)=" openEditModelFn(rowData)"
+                (click)="openEditModelFn(rowData)"
               ></i>
-              <i
+
+              <p-button
+                [link]="true"
+                icon="pi pi-copy"
+                (onClick)="copy(rowData)"
+                [style]="{ 'font-size': '100%',color: '#000000' }"
                 pTooltip="Copy"
-                class="pi pi-copy"
-                style="font-size: 100%; cursor: pointer"
-                (click)="copy(rowData)"
-              ></i>
+                [loading]="rowData._id === isCopyBtnLoading"
+              />
+
               <i
                 pTooltip="Move"
                 class="pi pi-file-import"
                 style="font-size: 100%; cursor: pointer"
-                (click)="(moveItem = rowData)"
+                (click)="moveItem = rowData"
               ></i>
-              <i
+              <p-button
+                [link]="true"
+                icon="pi pi-trash"
+                (onClick)="
+                  rowData?.file
+                    ? deleteFileFn(rowData)
+                    : deleteFolderFn(rowData)
+                "
+                [style]="{ 'font-size': '100%', color: '#f95557' }"
                 pTooltip="Delete"
-                class="pi pi-trash"
-                style="font-size: 100%; color: #f95557"
-                (click)="rowData?.file ? deleteFileFn(rowData) : deleteFolderFn(rowData)"
-              ></i>
+                [loading]="rowData._id === deleteItemId"
+              />
             </div>
           </td>
         </tr>
@@ -170,7 +186,7 @@
       </p>
       <div class="flex justify-content-center align-items-center gap-2">
         <p-fileUpload
-        #fu
+          #fu
           mode="basic"
           [style]="{ width: '100%', padding: '7px', 'font-size': '12px' }"
           chooseLabel="File"
@@ -179,8 +195,8 @@
           [disabled]="uploadFileBtnLoading"
           chooseIcon="pi pi-file-arrow-up"
           accept="image/*"
-          (onSelect)="uploadFile($event,fu)"
-          />
+          (onSelect)="uploadFile($event, fu)"
+        />
         <p-button
           class="w-fit text-xs"
           type="button"
@@ -203,13 +219,14 @@
 } @if(moveItem?._id) {
 <app-move-folder-file
   [moveItem]="moveItem"
+  [tableData]="tableData"
   [currentFolder]="currentFolder"
   (closeEvent)="moveItem = null"
-  (responseEvent)="moveFileFolderFn()"
+  (responseEvent)="moveFileFolderFn($event)"
 ></app-move-folder-file>
 }
 <p-dialog
-  header="Create Folder"
+  [header]="editItem?._id ? 'update name' :'Create Folder'"
   [modal]="true"
   [closable]="false"
   [visible]="createFolderModelOpen"
@@ -221,9 +238,9 @@
     (ngSubmit)="editItem?._id ? updateFolderFn() : createFolder()"
     class="flex flex-column justify-between gap-4 mb-1"
   >
-    <div class="flex items-center gap-4 mb-1">
+    <div class="flex align-items-center gap-4 mb-1">
       <label for="folderName" class="font-semibold w-24 text-center"
-        >Folder name</label
+        >Name</label
       >
       <input
         pInputText
@@ -231,9 +248,9 @@
         formControlName="name"
         class="text-bluegray-400 text-xs"
         type="text"
-        autocomplete="off"
         [style]="{
           height: '34px',
+          width: '100%',
           padding: '8px',
           color: '#667085',
           'font-weight': 500
@@ -244,19 +261,25 @@
 
     <!-- Error message -->
     <div
-      *ngIf="Form.invalid && (Form.dirty || Form.touched)"
+      *ngIf="editForm.invalid && editForm.dirty"
       class="text-red-500 text-sm"
     >
-      <span *ngIf="Form.errors?.['required']">Folder name is required.</span>
+    
+      <span *ngIf="Form.errors?.['required']">Name is required.</span>
     </div>
 
     <div class="flex justify-content-end gap-2">
       <p-button
         label="Cancel"
         severity="secondary"
-        (click)="createFolderModelOpen = false"
+        (click)="closeCreateFolderModel()"
       />
-      <p-button label="Save" type="submit" [disabled]="Form.invalid" />
+      <p-button
+        label="Save"
+        type="submit"
+        [disabled]="Form.invalid"
+        [loading]="createFolderBtnLoading"
+      />
     </div>
   </form>
 </p-dialog>
@@ -271,7 +294,7 @@
   <img
     [src]="image?.fileUrl"
     alt="Folder Image"
-    style="height: 50vh; width: 50vw;object-fit: contain;"
+    style="height: 50vh; width: 50vw; object-fit: contain"
   />
   }
   <div class="flex justify-content-end mt-2 sticky bottom-0 right-0">

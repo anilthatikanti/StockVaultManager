@@ -54,9 +54,15 @@ export class BinComponent implements OnInit {
   tableData: (Folder | IFile)[] = [];
   currentFolderId!: string;
   currentFolder!: Folder;
-  tableLoading: boolean = true;
   searchValue: string = '';
   image: any;
+
+  restoreBtnLoadingId: string | null = null;
+  deleteBtnLoadingId: string | null = null;
+
+  restoreAllBtnLoading: boolean = false;
+  deleteAllBtnLoading: boolean = false;
+  tableLoading: boolean = true;
   @HostListener('window:resize', ['$event'])
   onResize(event?: any) {
     this.innerHeight = window.innerWidth;
@@ -98,8 +104,13 @@ export class BinComponent implements OnInit {
           this.searchValue = queryParams['search'] || '';
 
           // Decide API based on `searchValue`
-          let apiUrl = this.searchValue? `${SERVER_URL}/files/search?query=${this.searchValue}&currentFolderId=${this.currentFolderId}&global=${false}&from=bin`
-          : `${SERVER_URL}/files/get-folder-file?parentFolderId=${this.currentFolderId}&from=bin`;
+          let apiUrl = this.searchValue
+            ? `${SERVER_URL}/files/search?query=${
+                this.searchValue
+              }&currentFolderId=${
+                this.currentFolderId
+              }&global=${false}&from=bin`
+            : `${SERVER_URL}/files/get-folder-file?parentFolderId=${this.currentFolderId}&from=bin`;
 
           try {
             const res: Response = await firstValueFrom(
@@ -107,7 +118,7 @@ export class BinComponent implements OnInit {
             );
             if (res?.success) {
               this.currentFolder = res.data.currentFolder;
-              this.tableData = res.data.data
+              this.tableData = res.data.data;
               // .filter(
               //   (item: any) => item.uploadedAt !== null
               // );
@@ -121,17 +132,37 @@ export class BinComponent implements OnInit {
   }
 
   async deleteFolderFn(folder: Folder) {
-    const res: Response = await firstValueFrom(
-      this.http.post<Response>(`${SERVER_URL}/files/delete-folder`, {
-        id: folder._id,
-      })
-    );
-    if (res?.success) {
-      this.tableData = this.tableData.filter((item) => item._id !== folder._id);
+    this.deleteBtnLoadingId = folder._id;
+    try {
+      const res: Response = await firstValueFrom(
+        this.http.post<Response>(`${SERVER_URL}/files/delete-folder`, {
+          id: folder._id,
+        })
+      );
+      if (res?.success) {
+        this.tableData = this.tableData.filter(
+          (item) => item._id !== folder._id
+        );
+        this.toast.messageService?.add({
+          severity: 'success',
+          summary: 'Folder Delete Success',
+          detail: 'The folder has been successfully deleted.',
+        });
+      }
+    } catch (e) {
+      console.error('deleteFolderFn Error:', e);
+      this.toast.messageService?.add({
+        severity: 'error',
+        summary: 'Folder Delete Error',
+        detail: 'An error occurred while trying to delete the folder.',
+      });
+    } finally {
+      this.deleteBtnLoadingId = null;
     }
   }
 
   async deleteFileFn(file: IFile) {
+    this.deleteBtnLoadingId = file._id;
     try {
       const res: Response = await firstValueFrom(
         this.http.post<Response>(`${SERVER_URL}/files/delete-file`, {
@@ -154,10 +185,13 @@ export class BinComponent implements OnInit {
         summary: 'File Delete Error',
         detail: 'An error occurred while trying to delete the file.',
       });
+    } finally {
+      this.deleteBtnLoadingId = null;
     }
   }
 
   async permanentDeleteAll() {
+    this.deleteAllBtnLoading = true;
     try {
       const res: Response = await firstValueFrom(
         this.http.delete<Response>(`${SERVER_URL}/files/delete-all`)
@@ -177,10 +211,13 @@ export class BinComponent implements OnInit {
         summary: 'All Delete Error',
         detail: 'An error occurred while trying to delete the all permanently.',
       });
+    }finally {
+      this.deleteAllBtnLoading = false;
     }
   }
 
   async restoreFolderFn(folder: Folder) {
+    this.restoreBtnLoadingId = folder._id;
     try {
       const res: Response = await firstValueFrom(
         this.http.put<Response>(`${SERVER_URL}/files/restore-folder`, {
@@ -204,10 +241,13 @@ export class BinComponent implements OnInit {
         summary: 'Folder Restore Error',
         detail: 'An error occurred while trying to restore the folder.',
       });
+    }finally {
+      this.restoreBtnLoadingId = null;
     }
   }
 
   async restoreFileFn(file: IFile) {
+    this.restoreBtnLoadingId = file._id;
     try {
       const res: Response = await firstValueFrom(
         this.http.put<Response>(`${SERVER_URL}/files/restore-file`, {
@@ -229,11 +269,14 @@ export class BinComponent implements OnInit {
         summary: 'File Restore Error',
         detail: 'An error occurred while trying to restore the file.',
       });
+    } finally {
+      this.restoreBtnLoadingId = null;
     }
   }
 
   async restoreAll() {
     try {
+      this.restoreAllBtnLoading = true;
       const res: Response = await firstValueFrom(
         this.http.put<Response>(`${SERVER_URL}/files/restore-all`, null)
       );
@@ -252,6 +295,8 @@ export class BinComponent implements OnInit {
         summary: 'All Restore Error',
         detail: 'An error occurred while trying to restore the all.',
       });
+    }finally {
+      this.restoreAllBtnLoading = false;
     }
   }
 

@@ -15,7 +15,6 @@ import { Response } from '../../shared/interface/response.interface';
 import { TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { IFile } from '../../shared/interface/folder-file/file.interface';
 import { SERVER_URL } from '../../environments/environment';
 @Component({
   selector: 'app-move-folder-file',
@@ -33,14 +32,22 @@ import { SERVER_URL } from '../../environments/environment';
 export class MoveFolderFileComponent implements OnChanges {
   @Input() moveItem: any | null = null;
   @Input() currentFolder!: Folder;
+  @Input() tableData: Folder[] = [];
   @Output() closeEvent: EventEmitter<any> = new EventEmitter();
-  @Output() responseEvent: EventEmitter<any> = new EventEmitter();
-  tableData: Folder[] = [];
+  @Output() responseEvent: EventEmitter<string> = new EventEmitter<string>();
   tableLoading: boolean = false;
+  moveBtnLoading: boolean = false;
+  isSameParentFolder: boolean = false;
 
   constructor(private http: HttpClient) {}
   ngOnChanges(changes: SimpleChanges): void {
-    this.getData(this.currentFolder._id);
+    if (changes['currentFolder'].previousValue !== changes['currentFolder'].currentValue) {
+      this.getData(this.currentFolder._id);
+    }
+    if (changes['tableData'].previousValue !== changes['tableData'].currentValue) {
+      this.isSameParentFolder = this.tableData.some((item: any) => item._id === this.moveItem?._id);
+      this.tableData = this.tableData.filter((item: any) => !item.fileUrl);
+    }
   }
 
   async getData(folderId: string) {
@@ -50,6 +57,7 @@ export class MoveFolderFileComponent implements OnChanges {
       this.tableLoading = true;
       const res: Response = await firstValueFrom(this.http.get<Response>(url));
       if (res?.success) {
+        this.isSameParentFolder = res.data.data.some((item:any) => item._id === this.moveItem?._id);
         this.currentFolder = res.data.currentFolder;
         this.tableData = res.data.data.filter((item: any) => !item.fileUrl);
       }
@@ -71,6 +79,7 @@ export class MoveFolderFileComponent implements OnChanges {
   }
   async moveItemFn() {
     try {
+      this.moveBtnLoading = true;
       let res: Response;
       if (this.moveItem && 'fileUrl' in this.moveItem) {
         res = await firstValueFrom(
@@ -89,16 +98,15 @@ export class MoveFolderFileComponent implements OnChanges {
       }
       if (res?.success) {
         this.moveItem = null;
-        this.responseEvent.emit();
+        this.responseEvent.emit(this.currentFolder._id);
       }
     } catch (error) {
       console.error('Error moving file', error);
+    }finally {
+      this.moveBtnLoading = false;
     }
   }
   cancelMoveFn() {
     this.closeEvent.emit();
-  }
-  checkFolder() {
-    return this.tableData.some((item) => item._id === this.moveItem?._id);
   }
 }

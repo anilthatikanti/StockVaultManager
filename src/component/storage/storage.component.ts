@@ -71,22 +71,25 @@ export class StorageComponent implements OnInit {
   value: string | undefined;
   tableData: Folder[] = [];
   currentFolderId: string | undefined;
-  createFolderModelOpen: boolean = false;
-  editItem: Folder | IFile | null = null;
-  tableLoading: boolean = false;
-  createFolderBtnLoading: boolean = false;
-  uploadFileBtnLoading: boolean = false;
   editForm!: FormGroup;
   currentFolder!: Folder;
-  moveItem: Folder | null = null;
   searchValue: string = '';
   stateOptions: any[] = [
     { label: 'Global', value: true },
     { label: 'Folder', value: false },
   ];
-  GlobalSearch: boolean = false;
   image: any;
 
+  editItem: Folder | IFile | null = null;
+  moveItem: Folder | null = null;
+  isCopyBtnLoading: string | null = null;
+  deleteItemId: string | null = null;
+
+  createFolderModelOpen: boolean = false;
+  tableLoading: boolean = false;
+  createFolderBtnLoading: boolean = false;
+  uploadFileBtnLoading: boolean = false;
+  GlobalSearch: boolean = false;
   constructor(
     private activatedRoute: ActivatedRoute,
     private http: HttpClient,
@@ -153,20 +156,17 @@ export class StorageComponent implements OnInit {
 
   async uploadFile(files: any, fileUpload: any) {
     const file = files.files[0]; // Get the selected file
-    if(file.size < 1024 * 1024){
+    if (file.size < 1024 * 1024) {
       try {
         this.uploadFileBtnLoading = true;
         // Manually send file to the backend
-        console.log('this.currentFolder', this.currentFolder)
+        console.log('this.currentFolder', this.currentFolder);
         const formData = new FormData();
         formData.append('folderId', this.currentFolder._id);
         formData.append('file', file);
-  
+
         const res: Response = await firstValueFrom(
-          this.http.post<Response>(
-            `${SERVER_URL}/files/upload-file`,
-            formData
-          )
+          this.http.post<Response>(`${SERVER_URL}/files/upload-file`, formData)
         );
         if (res?.success) {
           this.tableData.push(res.data);
@@ -177,18 +177,18 @@ export class StorageComponent implements OnInit {
           });
         }
       } catch (err: any) {
-        console.error('File upload error:', err)
+        console.error('File upload error:', err);
         this.toast.messageService?.add({
           severity: 'error',
           summary: 'Error',
           detail: 'Failed to upload file',
         });
-      } 
-    }else{
+      }
+    } else {
       this.toast.messageService?.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'File size should not exceed 1MB'
+        detail: 'File size should not exceed 1MB',
       });
     }
     fileUpload.clear();
@@ -200,17 +200,13 @@ export class StorageComponent implements OnInit {
       if (this.editForm.valid) {
         this.createFolderBtnLoading = true;
         const res: Response = await firstValueFrom(
-          this.http.post<Response>(
-            `${SERVER_URL}/files/create-folder`,
-            {
-              name: this.editForm.controls['name']?.value,
-              parentFolderId: this.currentFolderId,
-            }
-          )
+          this.http.post<Response>(`${SERVER_URL}/files/create-folder`, {
+            name: this.editForm.controls['name']?.value,
+            parentFolderId: this.currentFolderId,
+          })
         );
         if (res?.data) {
           this.tableData = [...this.tableData, res.data];
-          this.createFolderModelOpen = false;
           this.editForm.reset();
           this.toast.messageService?.add({
             severity: 'success',
@@ -246,28 +242,23 @@ export class StorageComponent implements OnInit {
   async updateFolderFn() {
     let res: Response;
     try {
-     
       if (this.editForm.valid) {
+        this.createFolderBtnLoading = true;
         if (this.editItem && !('fileUrl' in this.editItem)) {
           res = await firstValueFrom(
-            this.http.put<Response>(
-              `${SERVER_URL}/files/edit-folder-name`,
-              {
-                newName: this.editForm.controls['name'].value,
-                folderId: this.editItem?._id,
-              }
-            )
+            this.http.put<Response>(`${SERVER_URL}/files/edit-folder-name`, {
+              newName: this.editForm.controls['name'].value,
+              folderId: this.editItem?._id,
+            })
           );
         } else {
           let fileData = this.filExtensionSeparateFn();
           res = await firstValueFrom(
-            this.http.put<Response>(
-              `${SERVER_URL}/files/edit-file-name`,
-              {
-                newName: this.editForm.controls['name'].value+'.'+ fileData.extension,
-                fileId: this.editItem?._id,
-              }
-            )
+            this.http.put<Response>(`${SERVER_URL}/files/edit-file-name`, {
+              newName:
+                this.editForm.controls['name'].value + '.' + fileData.extension,
+              fileId: this.editItem?._id,
+            })
           );
         }
         if (res?.success) {
@@ -277,8 +268,7 @@ export class StorageComponent implements OnInit {
             }
             return item;
           });
-          this.editItem = null;
-          this.createFolderModelOpen = false;
+
           this.toast.messageService?.add({
             severity: 'success',
             summary: 'Success',
@@ -300,10 +290,15 @@ export class StorageComponent implements OnInit {
         summary: 'Error',
         detail: 'Error occurred while updating folder',
       });
+    } finally {
+      this.editItem = null;
+      this.createFolderModelOpen = false;
+      this.createFolderBtnLoading = false;
     }
   }
 
-  async copy(rowData: any) {
+  copy(rowData: any) {
+    this.isCopyBtnLoading = rowData._id;
     if (rowData.fileUrl) {
       this.copyFile(rowData);
     } else {
@@ -336,6 +331,8 @@ export class StorageComponent implements OnInit {
         summary: 'Error',
         detail: 'Error occurred while Copying file',
       });
+    } finally {
+      this.isCopyBtnLoading = null;
     }
   }
   async copyFolderFn(folder: Folder) {
@@ -361,10 +358,13 @@ export class StorageComponent implements OnInit {
         summary: 'Error',
         detail: 'Error occurred while Copying folder',
       });
+    } finally {
+      this.isCopyBtnLoading = null;
     }
   }
 
   async deleteFolderFn(folder: Folder) {
+    this.deleteItemId = folder._id;
     try {
       const res: Response = await firstValueFrom(
         this.http.post<Response>(`${SERVER_URL}/files/delete-folder`, {
@@ -388,11 +388,14 @@ export class StorageComponent implements OnInit {
         summary: 'Error',
         detail: 'Error occurred while deleting folder',
       });
+    } finally {
+      this.deleteItemId = null;
     }
   }
 
   async deleteFileFn(file: IFile) {
     try {
+      this.deleteItemId = file._id;
       const res: Response = await firstValueFrom(
         this.http.post<Response>(`${SERVER_URL}/files/delete-file`, {
           fileId: file._id,
@@ -414,6 +417,8 @@ export class StorageComponent implements OnInit {
         summary: 'Error',
         detail: 'Error occurred while deleting file',
       });
+    } finally {
+      this.deleteItemId = null;
     }
   }
 
@@ -465,7 +470,27 @@ export class StorageComponent implements OnInit {
     throw new Error('Invalid file');
   }
 
-  moveFileFolderFn(){
-    this.tableData = this.tableData.filter((item) => item._id !== this.moveItem?._id);
+  moveFileFolderFn(parentId: string) {
+    const movedId = this.moveItem?._id;
+    const oldParentId = this.moveItem?.parentFolderId;
+
+    this.tableData = this.tableData.reduce((acc, item) => {
+      if (item._id === parentId) {
+        item.count += 1;
+      }
+      // Exclude the moved item itself
+      if (item._id !== movedId) {
+        acc.push(item);
+      }
+
+      return acc;
+    }, [] as typeof this.tableData);
+  }
+
+  closeCreateFolderModel() {
+    this.editForm.reset(); // Resets the control value
+    this.createFolderModelOpen = false;
+    this.editItem = null;
+    // console.log('valid', this.editForm.valid);
   }
 }
