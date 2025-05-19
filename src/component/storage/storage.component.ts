@@ -106,53 +106,55 @@ export class StorageComponent implements OnInit {
     return this.editForm.controls['name'];
   }
   ngOnInit() {
-    this.onResize();
+  this.onResize();
 
-    // Combine params and queryParams, process only the latest change
-    combineLatest([
-      this.activatedRoute.params,
-      this.activatedRoute.queryParams, // Prevents rapid API calls
-    ])
-      .pipe(
-        tap(() => {
-          this.tableLoading = true; // Set loading state immediately
-        }),
-        debounceTime(50),
-        switchMap(async ([params, queryParams]) => {
-          // Update `currentFolderId`
+  combineLatest([
+    this.activatedRoute.params,
+    this.activatedRoute.queryParams,
+  ])
+    .pipe(
+      tap(() => {
+        this.tableLoading = true;
+      }),
+      debounceTime(50),
+      switchMap(async ([params, queryParams]) => {
+        try {
+          // Update state
           this.currentFolderId = params['id'] || this.currentFolderId;
-          // Update search and global filter values
           this.GlobalSearch = queryParams['global'] === 'true';
           this.searchValue = queryParams['search'] || '';
 
-          // Decide API based on `searchValue`
-          let apiUrl = this.searchValue
+          // Build URL
+          const apiUrl = this.searchValue
             ? `${SERVER_URL}/files/search?query=${this.searchValue}&currentFolderId=${this.currentFolderId}&global=${queryParams['global']}`
             : `${SERVER_URL}/files/get-folder-file?parentFolderId=${this.currentFolderId}`;
 
-          try {
-            const res: Response = await firstValueFrom(
-              this.http.get<Response>(apiUrl)
-            );
+          const res: Response = await firstValueFrom(
+            this.http.get<Response>(apiUrl)
+          );
 
-            if (res?.success) {
-              this.currentFolder = res.data.currentFolder;
-              if (this.currentFolder?.isDeleted) {
-                this.router.navigate(['/storage', '64e4a5f7c25e4b0a2c9d1234'], {
-                  replaceUrl: true,
-                });
-                return;
-              } else {
-                this.tableData = res.data.data;
-              }
+          if (res?.success) {
+            this.currentFolder = res.data.currentFolder;
+
+            if (this.currentFolder?.isDeleted) {
+              this.router.navigate(['/storage', '64e4a5f7c25e4b0a2c9d1234'], {
+                replaceUrl: true,
+              });
+              return;
+            } else {
+              this.tableData = res.data.data;;
             }
-          } catch (error) {
-            console.error('API Error:', error);
           }
-        })
-      )
-      .subscribe(() => (this.tableLoading = false));
-  }
+        } catch (error) {
+          console.error('API Error:', error);
+        } finally {
+          this.tableLoading = false; // Ensure this always runs
+        }
+      })
+    )
+    .subscribe();
+}
+
 
   async uploadFile(files: any, fileUpload: any) {
     const file = files.files[0]; // Get the selected file
@@ -208,6 +210,7 @@ export class StorageComponent implements OnInit {
         if (res?.data) {
           this.tableData = [...this.tableData, res.data];
           this.editForm.reset();
+          this.createFolderModelOpen = false;
           this.toast.messageService?.add({
             severity: 'success',
             summary: 'Success',

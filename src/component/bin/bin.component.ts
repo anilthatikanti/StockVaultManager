@@ -77,59 +77,52 @@ export class BinComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.onResize();
-    this.activatedRoute.params.subscribe((params) => {
-      if (params['id'] !== '64e4a5f7c25e4b0a2c9d5678') {
-        this.router.navigate(['/bin', '64e4a5f7c25e4b0a2c9d5678'], {
-          replaceUrl: true,
-        });
-      }
-    });
+  this.onResize();
 
-    // Combine params and queryParams, process only the latest change
-    combineLatest([
-      this.activatedRoute.params,
-      this.activatedRoute.queryParams.pipe(
-        tap(() => {
-          this.tableLoading = true; // Set loading state immediately
-        }),
-        debounceTime(50)
-      ), // Prevents rapid API calls
-    ])
-      .pipe(
-        switchMap(async ([params, queryParams]) => {
-          // Update `currentFolderId`
-          this.currentFolderId = params['id'] || this.currentFolderId;
-          // Update search and global filter values
+  combineLatest([
+    this.activatedRoute.params,
+    this.activatedRoute.queryParams,
+  ])
+    .pipe(
+      tap(() => {
+        this.tableLoading = true;
+      }),
+      debounceTime(50),
+      switchMap(async ([params, queryParams]) => {
+        try {
+          const folderId = params['id'];
+
+          // Redirect if not the bin folder
+          if (folderId !== '64e4a5f7c25e4b0a2c9d5678') {
+            this.router.navigate(['/bin', '64e4a5f7c25e4b0a2c9d5678'], {
+              replaceUrl: true,
+            });
+            return;
+          }
+
+          this.currentFolderId = folderId;
           this.searchValue = queryParams['search'] || '';
 
-          // Decide API based on `searchValue`
-          let apiUrl = this.searchValue
-            ? `${SERVER_URL}/files/search?query=${
-                this.searchValue
-              }&currentFolderId=${
-                this.currentFolderId
-              }&global=${false}&from=bin`
+          const apiUrl = this.searchValue
+            ? `${SERVER_URL}/files/search?query=${this.searchValue}&currentFolderId=${this.currentFolderId}&global=false&from=bin`
             : `${SERVER_URL}/files/get-folder-file?parentFolderId=${this.currentFolderId}&from=bin`;
 
-          try {
-            const res: Response = await firstValueFrom(
-              this.http.get<Response>(apiUrl)
-            );
-            if (res?.success) {
-              this.currentFolder = res.data.currentFolder;
-              this.tableData = res.data.data;
-              // .filter(
-              //   (item: any) => item.uploadedAt !== null
-              // );
-            }
-          } catch (error) {
-            console.error('API Error:', error);
+          const res: Response = await firstValueFrom(this.http.get<Response>(apiUrl));
+
+          if (res?.success) {
+            this.currentFolder = res.data.currentFolder;
+            this.tableData = res.data.data;
           }
-        })
-      )
-      .subscribe(() => (this.tableLoading = false));
-  }
+        } catch (error) {
+          console.error('API Error:', error);
+        } finally {
+          this.tableLoading = false;
+        }
+      })
+    )
+    .subscribe();
+}
+
 
   async deleteFolderFn(folder: Folder) {
     this.deleteBtnLoadingId = folder._id;
