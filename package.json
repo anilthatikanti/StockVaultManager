@@ -5,7 +5,7 @@
     "generate-env": "node generate-env.cjs",
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --configurations=production",
+    "build": "ng build --configuration=production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
